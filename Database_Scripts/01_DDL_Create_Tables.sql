@@ -4,7 +4,8 @@ CREATE TABLE USER_INFO (
     Username VARCHAR2(50) PRIMARY KEY,
     HoTen VARCHAR2(100) NOT NULL,
     Email VARCHAR2(100),
-    SoDienThoai VARCHAR2(15)
+    SoDienThoai VARCHAR2(15),
+    Password_Hash VARCHAR2(256)
 );
 
 -- 2. BẢNG ĐỘI THI ĐẤU
