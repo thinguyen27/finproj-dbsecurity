@@ -207,7 +207,7 @@ COMMIT;
 BEGIN
 SA_USER_ADMIN.SET_USER_PRIVS(
     policy_name=>'SPORT_POLICY',
-    user_name=>'BTC_APP',
+    user_name=>'SPORTS_OWNER',
     privileges=>'FULL'
 );
 END;
