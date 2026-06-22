@@ -52,7 +52,7 @@ CREATE OR REPLACE PACKAGE BODY SEC_ADMIN.PKG_SPORT_CONTEXT AS
                 WHERE UPPER(Username) = UPPER(p_username);
             EXCEPTION WHEN OTHERS THEN
                 v_team := NULL;
-            END IF;
+            END;
         END IF;
 
         -- Thiết lập mã đội bảo mật, mặc định trả về 'NONE' cho các vai trò diện rộng (BTC, Trọng tài)
