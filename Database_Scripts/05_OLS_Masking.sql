@@ -1,17 +1,9 @@
--- Cấp quyền thực thi các package hệ thống cần thiết cho SEC_ADMIN để cấu hình OLS và Data Redaction
-GRANT EXECUTE ON LBACSYS.SA_SYSDBA       TO SEC_ADMIN;
-GRANT EXECUTE ON LBACSYS.SA_COMPONENTS   TO SEC_ADMIN;
-GRANT EXECUTE ON LBACSYS.SA_LABEL_ADMIN  TO SEC_ADMIN;
-GRANT EXECUTE ON LBACSYS.SA_POLICY_ADMIN TO SEC_ADMIN;
-GRANT EXECUTE ON LBACSYS.SA_USER_ADMIN   TO SEC_ADMIN;
-GRANT EXECUTE ON LBACSYS.TO_LBAC_DATA_LABEL TO SEC_ADMIN;
-
 -- Kết nối bằng tài khoản quản trị an ninh để cấu hình chính sách OLS và Data Redaction
-CONN SEC_ADMIN/SEC_ADMIN;
+CONN lbacsys/lbacsys;
 
 -- XÓA OLS POLICY CŨ (nếu tồn tại)
 BEGIN
-    SA_POLICY_ADMIN.REMOVE_TABLE_POLICY(
+    LBAC_POLICY_ADMIN.REMOVE_TABLE_POLICY(
         policy_name => 'SPORT_POLICY',
         schema_name => 'SPORTS_OWNER',
         table_name  => 'THANH_VIEN_DOI'
@@ -48,6 +40,13 @@ BEGIN
     );
 END;
 /
+
+-- Gán quyền cho sec_admin để tạo policy OLS và Data Redaction
+EXEC SA_SYSDBA.ENABLE_POLICY('SPORT_POLICY');
+GRANT SPORT_POLICY_DBA TO SEC_ADMIN;
+
+-- dùng sec_admin để tạo level, group, label và áp policy vào bảng THANH_VIEN_DOI
+CONN SEC_ADMIN/SEC_ADMIN;
 -- Tạo Security Levels
 BEGIN
 
@@ -139,6 +138,23 @@ SA_LABEL_ADMIN.CREATE_LABEL(
 END;
 /
 
+BEGIN
+SA_LABEL_ADMIN.CREATE_LABEL(
+    'SPORT_POLICY',
+    3002,
+    'CONFIDENTIAL::TT'
+);
+END;
+/
+
+BEGIN
+SA_LABEL_ADMIN.CREATE_LABEL(
+    'SPORT_POLICY',
+    3003,
+    'CONFIDENTIAL::GS'
+);
+END;
+/
 
 -- Trọng tài
 BEGIN
@@ -166,7 +182,7 @@ END;
 
 BEGIN
 
-SA_POLICY_ADMIN.APPLY_TABLE_POLICY(
+LBAC_POLICY_ADMIN.APPLY_TABLE_POLICY(
     policy_name  => 'SPORT_POLICY',
     schema_name  => 'SPORTS_OWNER',
     table_name   => 'THANH_VIEN_DOI',
@@ -232,7 +248,7 @@ SA_USER_ADMIN.SET_USER_LABELS(
     policy_name     => 'SPORT_POLICY',
     user_name       => 'TT_APP',
     max_read_label  => 'CONFIDENTIAL::TT',
-    max_write_label => 'INTERNAL::TT'
+    max_write_label => 'CONFIDENTIAL::TT'
 );
 
 END;
@@ -245,7 +261,7 @@ SA_USER_ADMIN.SET_USER_LABELS(
     policy_name     => 'SPORT_POLICY',
     user_name       => 'GS_APP',
     max_read_label  => 'CONFIDENTIAL::GS',
-    max_write_label => 'PUBLIC::GS'
+    max_write_label => 'CONFIDENTIAL::GS'
 );
 
 END;
@@ -277,21 +293,16 @@ END;
 
 -- SDT
 BEGIN
-
 DBMS_REDACT.ALTER_POLICY(
-    object_schema       => 'SPORTS_OWNER',
-    object_name         => 'THANH_VIEN_DOI',
-    policy_name         => 'REDACT_MEMBER',
+    object_schema => 'SPORTS_OWNER',
+    object_name   => 'THANH_VIEN_DOI',
+    policy_name   => 'REDACT_MEMBER',
 
-    action              => DBMS_REDACT.ADD_COLUMN,
+    action        => DBMS_REDACT.ADD_COLUMN,
+    column_name   => 'SoDienThoai',
 
-    column_name         => 'SoDienThoai',
-
-    function_type       => DBMS_REDACT.PARTIAL,
-
-    function_parameters => 'VVVVVV,VVVV,*,4'
+    function_type => DBMS_REDACT.FULL
 );
-
 END;
 /
 
