@@ -1,46 +1,70 @@
--- 1. TẠO VÀ BẢO VỆ ROLE BAN TỔ CHỨC [cite: 205, 208, 209, 318]
--- Đặt mật khẩu để bắt buộc kích hoạt bằng lệnh SET ROLE
+SET SERVEROUTPUT ON;
+SET ECHO ON;
+
+-- Kết nối bằng tài khoản quản trị hệ thống có thẩm quyền quản lý vai trò
+CONN SYSTEM/manager;
+
+-- Sử dụng PL/SQL động quét từ điển hệ thống để xóa bỏ các Role cũ tránh lỗi lặp cấu trúc khi thực thi lại script
+BEGIN
+    FOR r IN (
+        SELECT role 
+        FROM dba_roles 
+        WHERE role IN ('ROLE_BTC', 'ROLE_TD', 'ROLE_TT', 'ROLE_GS')
+    ) LOOP
+        EXECUTE IMMEDIATE 'DROP ROLE ' || r.role;
+    END LOOP;
+END;
+/
+
+-- Khởi tạo nhóm quyền Ban Tổ Chức, áp dụng mật khẩu bảo vệ để ép buộc kích hoạt an toàn thông qua lệnh SET ROLE ở tầng ứng dụng
 CREATE ROLE Role_BTC IDENTIFIED BY "BtcPass2026#"; 
 
--- Cấp quyền hệ thống cho BTC có quyền đi gán tiếp (WITH ADMIN OPTION) [cite: 231, 344-350]
+-- Cấp đặc quyền quản trị tài khoản vòng đời người dùng kèm tùy chọn phân cấp tiếp cho Ban Tổ Chức
 GRANT CREATE USER, ALTER USER, DROP USER TO Role_BTC WITH ADMIN OPTION;
 GRANT CREATE ROLE, ALTER ANY ROLE, DROP ANY ROLE, GRANT ANY ROLE TO Role_BTC WITH ADMIN OPTION;
 GRANT CREATE SESSION TO Role_BTC WITH ADMIN OPTION;
 GRANT CREATE TABLE, CREATE ANY TABLE, ALTER ANY TABLE, DROP ANY TABLE TO Role_BTC;
 GRANT SELECT ANY TABLE, INSERT ANY TABLE, UPDATE ANY TABLE, DELETE ANY TABLE TO Role_BTC;
 
--- Cấp quyền truy xuất từ điển dữ liệu để BTC xem thông tin [cite: 249, 250, 256]
+-- Cấp đặc quyền truy xuất từ điển dữ liệu hệ thống để Ban Tổ Chức thực hiện giám sát cấu hình bảo mật trên Dashboard ứng dụng Web
 GRANT SELECT ON DBA_USERS TO Role_BTC;
 GRANT SELECT ON DBA_ROLES TO Role_BTC;
 GRANT SELECT ON DBA_ROLE_PRIVS TO Role_BTC;
 GRANT SELECT ON DBA_SYS_PRIVS TO Role_BTC;
 GRANT SELECT ON DBA_TAB_PRIVS TO Role_BTC;
 
--- ==========================================
--- 2. TẠO CÁC ROLE NGHIỆP VỤ CÒN LẠI [cite: 320-325]
-CREATE ROLE Role_TD; -- Trưởng đoàn
-CREATE ROLE Role_TT; -- Trọng tài
-CREATE ROLE Role_GS; -- Giám sát / Khán giả
 
--- ==========================================
--- 3. PHÂN QUYỀN ĐỐI TƯỢNG (OBJECT PRIVILEGES) [cite: 360-368]
+-- Khởi tạo các nhóm quyền vai trò nghiệp vụ thực tế cho các phân hệ chức năng của giải đấu
+CREATE ROLE Role_TD; -- Nhóm quyền dành cho Trưởng đoàn quản lý câu lạc bộ
+CREATE ROLE Role_TT; -- Nhóm quyền dành cho Tổ trọng tài điều khiển chuyên môn
+CREATE ROLE Role_GS; -- Nhóm quyền dành cho Giám sát trận đấu và Khán giả tra cứu công khai
 
--- A. Dành cho Trọng Tài (Role_TT) [cite: 336, 337]
-GRANT SELECT ON SPORTS_OWNER.LICH_THI_DAU TO Role_TT;
-GRANT SELECT ON SPORTS_OWNER.KET_QUA_TRAN_DAU TO Role_TT;
--- Cấp quyền mức Cột: Trọng tài CHỈ được cập nhật Tỷ số và Thẻ phạt [cite: 227, 370-373]
-GRANT UPDATE (TySoDoiA, TySoDoiB, ThePhatDoiA, ThePhatDoiB) ON SPORTS_OWNER.KET_QUA_TRAN_DAU TO Role_TT;
 
--- B. Dành cho Trưởng Đoàn (Role_TD) [cite: 333, 334]
--- (Quyền thao tác trên toàn bảng. Oracle VPD sẽ tự động lọc dòng theo Mã Đội sau) [cite: 432-438]
-GRANT SELECT, INSERT, UPDATE, DELETE ON SPORTS_OWNER.VAN_DONG_VIEN TO Role_TD;
+-- Phân quyền cho vai trò Trọng tài (Role_TT): Chỉ đọc thông tin nền và cập nhật số liệu kết quả giới hạn nghiêm ngặt ở mức cột
+GRANT SELECT ON SPORTS_OWNER.GIAI_DAU TO Role_TT;
+GRANT SELECT ON SPORTS_OWNER.SAN_THI_DAU TO Role_TT;
+GRANT SELECT ON SPORTS_OWNER.DOI_THI_DAU TO Role_TT;
+GRANT SELECT ON SPORTS_OWNER.TRAN_DAU TO Role_TT;
+GRANT SELECT ON SPORTS_OWNER.PHAN_CONG_TRAN_DAU TO Role_TT;
+
+-- Ép buộc an toàn: Trọng tài tuyệt đối không được sửa lịch thi đấu, sân vận động mà CHỈ được cập nhật tỷ số, thẻ phạt và trạng thái diễn ra của trận đấu
+GRANT UPDATE (TySoDoiA, TySoDoiB, TheVangDoiA, TheVangDoiB, TheDoDoiA, TheDoDoiB, TrangThaiTran) ON SPORTS_OWNER.TRAN_DAU TO Role_TT;
+
+-- Phân quyền cho vai trò Trưởng đoàn (Role_TD): Toàn quyền thao tác nhân sự đội bóng bóng. Cơ chế độc lập dòng dữ liệu sẽ do chính sách VPD tại File 04 đảm nhiệm
+GRANT SELECT ON SPORTS_OWNER.GIAI_DAU TO Role_TD;
+GRANT SELECT ON SPORTS_OWNER.SAN_THI_DAU TO Role_TD;
 GRANT SELECT ON SPORTS_OWNER.DOI_THI_DAU TO Role_TD;
-GRANT SELECT ON SPORTS_OWNER.LICH_THI_DAU TO Role_TD;
-GRANT SELECT ON SPORTS_OWNER.KET_QUA_TRAN_DAU TO Role_TD;
+GRANT SELECT, INSERT, UPDATE, DELETE ON SPORTS_OWNER.THANH_VIEN_DOI TO Role_TD;
+GRANT SELECT ON SPORTS_OWNER.TRAN_DAU TO Role_TD;
+GRANT SELECT ON SPORTS_OWNER.PHAN_CONG_TRAN_DAU TO Role_TD;
 
--- C. Dành cho Giám sát / Khán giả (Role_GS) [cite: 338, 339]
--- (Chỉ có quyền Read-Only. Data Masking sẽ tự động che cột nhạy cảm sau) [cite: 476-478, 483-487]
-GRANT SELECT ON SPORTS_OWNER.LICH_THI_DAU TO Role_GS;
-GRANT SELECT ON SPORTS_OWNER.KET_QUA_TRAN_DAU TO Role_GS;
-GRANT SELECT ON SPORTS_OWNER.VAN_DONG_VIEN TO Role_GS;
+-- Phân quyền cho vai trò Giám sát / Khán giả (Role_GS): Quyền độc giả Read-Only thuần túy trên toàn bộ hệ thống giải đấu. Lớp Data Masking sẽ xử lý che dữ liệu cá nhân sau
+GRANT SELECT ON SPORTS_OWNER.USER_INFO TO Role_GS;
+GRANT SELECT ON SPORTS_OWNER.GIAI_DAU TO Role_GS;
+GRANT SELECT ON SPORTS_OWNER.SAN_THI_DAU TO Role_GS;
 GRANT SELECT ON SPORTS_OWNER.DOI_THI_DAU TO Role_GS;
+GRANT SELECT ON SPORTS_OWNER.THANH_VIEN_DOI TO Role_GS;
+GRANT SELECT ON SPORTS_OWNER.TRAN_DAU TO Role_GS;
+GRANT SELECT ON SPORTS_OWNER.PHAN_CONG_TRAN_DAU TO Role_GS;
+
+PROMPT ROLES AND PRIVILEGES CONFIGURED SUCCESSFULLY
