@@ -1,3 +1,14 @@
+-- Cấp quyền thực thi các package hệ thống cần thiết cho SEC_ADMIN để cấu hình OLS và Data Redaction
+GRANT EXECUTE ON LBACSYS.SA_SYSDBA       TO SEC_ADMIN;
+GRANT EXECUTE ON LBACSYS.SA_COMPONENTS   TO SEC_ADMIN;
+GRANT EXECUTE ON LBACSYS.SA_LABEL_ADMIN  TO SEC_ADMIN;
+GRANT EXECUTE ON LBACSYS.SA_POLICY_ADMIN TO SEC_ADMIN;
+GRANT EXECUTE ON LBACSYS.SA_USER_ADMIN   TO SEC_ADMIN;
+GRANT EXECUTE ON LBACSYS.TO_LBAC_DATA_LABEL TO SEC_ADMIN;
+
+-- Kết nối bằng tài khoản quản trị an ninh để cấu hình chính sách OLS và Data Redaction
+CONN SEC_ADMIN/SEC_ADMIN;
+
 -- XÓA OLS POLICY CŨ (nếu tồn tại)
 BEGIN
     SA_POLICY_ADMIN.REMOVE_TABLE_POLICY(
@@ -178,16 +189,14 @@ COMMIT;
 -- 8. Gán clearance cho user
 -- Cho SPORTS_OWNER
 BEGIN
-
-SA_USER_ADMIN.SET_USER_LABELS(
-policy_name=>'SPORT_POLICY',
-user_name=>'SPORTS_OWNER',
-max_read_label=>'SECRET::BTC',
-max_write_label=>'SECRET::BTC'
+SA_USER_ADMIN.SET_USER_PRIVS(
+    policy_name=>'SPORT_POLICY',
+    user_name=>'BTC_APP',
+    privileges=>'FULL'
 );
-
 END;
 /
+
 
 -- Gán clearance cho BTC
 BEGIN
@@ -222,7 +231,7 @@ BEGIN
 SA_USER_ADMIN.SET_USER_LABELS(
     policy_name     => 'SPORT_POLICY',
     user_name       => 'TT_APP',
-    max_read_label  => 'INTERNAL::TT',
+    max_read_label  => 'CONFIDENTIAL::TT',
     max_write_label => 'INTERNAL::TT'
 );
 
@@ -235,7 +244,7 @@ BEGIN
 SA_USER_ADMIN.SET_USER_LABELS(
     policy_name     => 'SPORT_POLICY',
     user_name       => 'GS_APP',
-    max_read_label  => 'PUBLIC::GS',
+    max_read_label  => 'CONFIDENTIAL::GS',
     max_write_label => 'PUBLIC::GS'
 );
 
@@ -324,6 +333,7 @@ END;
 /
 
 -- Tạo trigger để gán nhãn OLS cho các bản ghi mới được thêm vào bảng THANH_VIEN_DOI
+CONN SPORTS_OWNER/CNTT2026!;
 CREATE OR REPLACE TRIGGER TRG_MEMBER_LABEL
 BEFORE INSERT ON SPORTS_OWNER.THANH_VIEN_DOI
 FOR EACH ROW
