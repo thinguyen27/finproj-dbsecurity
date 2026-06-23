@@ -119,7 +119,7 @@ END FN_VPD_PHAN_CONG;
 /
 
 
--- Hàm chính sách 1: Kiểm soát dòng dữ liệu nhân sự trên bảng THANH_VIEN_DOI
+-- Hàm chính sách: Kiểm soát dòng dữ liệu nhân sự trên bảng THANH_VIEN_DOI
 -- Nghiệp vụ: Chặn hiển thị bản ghi đã xóa mềm. Ép buộc Trưởng đoàn (Role_TD) chỉ thao tác trên thành viên đội mình.
 CREATE OR REPLACE FUNCTION SEC_ADMIN.FN_VPD_THANH_VIEN (
     p_schema IN VARCHAR2,
@@ -149,7 +149,7 @@ END FN_VPD_THANH_VIEN;
 /
 
 
--- Hàm chính sách 2: Kiểm soát luồng thay đổi kết quả trên bảng TRAN_DAU áp dụng mô hình thuộc tính ABAC nâng cao
+-- Hàm chính sách: Kiểm soát luồng thay đổi kết quả trên bảng TRAN_DAU áp dụng mô hình thuộc tính ABAC nâng cao
 -- Nghiệp vụ: Trọng tài (ROLE_TT) chỉ sửa được trận mình bắt chính/VAR, khi trận đấu đang LIVE và biên bản chưa khóa (PENDING).
 CREATE OR REPLACE FUNCTION SEC_ADMIN.FN_VPD_TRAN_DAU_UPDATE (
     p_schema IN VARCHAR2,
@@ -180,7 +180,7 @@ END FN_VPD_TRAN_DAU_UPDATE;
 /
 
 
--- Hàm chính sách 3: Kiểm soát hiển thị danh sách lịch thi đấu tổng quan (SELECT) trên bảng TRAN_DAU
+-- Hàm chính sách: Kiểm soát hiển thị danh sách lịch thi đấu tổng quan (SELECT) trên bảng TRAN_DAU
 -- Nghiệp vụ: Ẩn hoàn toàn các trận đấu đã bị xóa mềm một cách trong suốt đối với mọi đối tượng truy vấn
 CREATE OR REPLACE FUNCTION SEC_ADMIN.FN_VPD_TRAN_DAU_SELECT (
     p_schema IN VARCHAR2,
