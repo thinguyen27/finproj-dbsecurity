@@ -12,6 +12,8 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ import java.util.stream.Collectors;
 public class AuditService {
     private final AuditRepository auditRepository;
     private final ObjectMapper objectMapper;
-
+    @Transactional(readOnly = true)
     public List<AuditLogResponse> getParsedAuditLogs() {
         List<Map<String, Object>> rawLogs = auditRepository.fetchRawAuditLogs();
 

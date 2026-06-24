@@ -25,4 +25,23 @@ public class SysAdminRepository {
         String sql = String.format("GRANT %s TO %s", role, username);
         jdbcTemplate.execute(sql);
     }
+ // Lấy danh sách Quyền Hệ Thống (Ví dụ: CREATE SESSION, CREATE USER)
+    public List<Map<String, Object>> getSystemPrivileges(String granteeName) {
+        String sql = """
+            SELECT PRIVILEGE, ADMIN_OPTION 
+            FROM DBA_SYS_PRIVS 
+            WHERE GRANTEE = ?
+        """;
+        return jdbcTemplate.queryForList(sql, granteeName.toUpperCase());
+    }
+
+    // Lấy danh sách Quyền Đối Tượng (Ví dụ: SELECT trên bảng TRAN_DAU)
+    public List<Map<String, Object>> getObjectPrivileges(String granteeName) {
+        String sql = """
+            SELECT TABLE_NAME, PRIVILEGE, GRANTABLE 
+            FROM DBA_TAB_PRIVS 
+            WHERE GRANTEE = ?
+        """;
+        return jdbcTemplate.queryForList(sql, granteeName.toUpperCase());
+    }
 }

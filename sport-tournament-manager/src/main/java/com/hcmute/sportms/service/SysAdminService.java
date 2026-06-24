@@ -11,9 +11,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SysAdminService {
     private final SysAdminRepository sysAdminRepository;
-
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> getAllUsersWithPrivileges() {
         return sysAdminRepository.getSystemUsers();
+    }
+    
+    @Transactional(readOnly = true)
+    public Map<String, Object> getUserOrRolePrivilegesDetails(String granteeName) {
+        // 1. Lấy quyền hệ thống
+        List<Map<String, Object>> sysPrivs = sysAdminRepository.getSystemPrivileges(granteeName);
+        
+        // 2. Lấy quyền đối tượng
+        List<Map<String, Object>> objPrivs = sysAdminRepository.getObjectPrivileges(granteeName);
+        
+        // 3. Đóng gói lại thành 1 Map (hoặc bạn có thể tự định nghĩa 1 class DTO) trả về cho Frontend
+        return Map.of(
+            "grantee", granteeName.toUpperCase(),
+            "systemPrivileges", sysPrivs,
+            "objectPrivileges", objPrivs
+        );
     }
 
     @Transactional
