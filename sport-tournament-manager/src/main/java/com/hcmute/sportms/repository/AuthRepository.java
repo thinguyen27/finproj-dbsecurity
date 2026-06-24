@@ -18,8 +18,10 @@ public class AuthRepository {
 
     public Map<String, Object> callLoginProcedure(String username, String password) {
         SimpleJdbcCall jdbcCall = new SimpleJdbcCall(jdbcTemplate)
-                .withCatalogName("SEC_ADMIN.PKG_CRYPTO_UTILS")
+                .withSchemaName("SEC_ADMIN")               // 1. Tách riêng tên Schema
+                .withCatalogName("PKG_CRYPTO_UTILS")       // 2. Tách riêng tên Package
                 .withProcedureName("LOGIN_USER")
+                .withoutProcedureColumnMetaDataAccess()    // 3. BẮT BUỘC: Tắt dò tìm Metadata tự động
                 .declareParameters(
                         new SqlParameter("p_username", Types.VARCHAR),
                         new SqlParameter("p_password", Types.VARCHAR),

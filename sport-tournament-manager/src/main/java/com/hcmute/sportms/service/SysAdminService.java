@@ -19,9 +19,9 @@ public class SysAdminService {
     @Transactional
     public void grantRoleToUser(String role, String username) {
         // Validation chống SQL Injection trên lệnh DDL
-        if (!role.matches("^[A-Z0-9_]+$") || !username.matches("^[A-Z0-9_]+$")) {
-            throw new IllegalArgumentException("Dữ liệu Role hoặc Username chứa ký tự không hợp lệ.");
-        }
+    	if (!role.matches("^[a-zA-Z0-9_]+$") || !username.matches("^[a-zA-Z0-9_]+$")) {
+    	    throw new IllegalArgumentException("Dữ liệu Role hoặc Username chứa ký tự không hợp lệ.");
+    	}
         sysAdminRepository.executeGrantRole(role, username);
     }
 }

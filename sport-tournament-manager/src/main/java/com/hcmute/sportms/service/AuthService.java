@@ -3,7 +3,7 @@ package com.hcmute.sportms.service;
 import com.hcmute.sportms.dto.response.LoginResponse;
 import com.hcmute.sportms.exception.DatabaseSecurityException;
 import com.hcmute.sportms.repository.AuthRepository;
-import com.hcmute.sportms.utils.JwtUtils; // Thêm import
+import com.hcmute.sportms.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Map;
@@ -12,18 +12,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthService {
     private final AuthRepository authRepository;
-    private final JwtUtils jwtUtils; // Inject JwtUtils
+    private final JwtUtils jwtUtils; 
 
     public LoginResponse authenticate(String username, String password) {
         Map<String, Object> result = authRepository.callLoginProcedure(username, password);
 
-        String status = (String) result.get("P_STATUS");
-        String role = (String) result.get("P_ROLE");
-        String teamId = (String) result.get("P_TEAM_ID");
+        // SỬA Ở ĐÂY: Đổi P_STATUS, P_ROLE, P_TEAM_ID thành chữ in thường
+        String status = (String) result.get("p_status");
+        String role = (String) result.get("p_role");
+        String teamId = (String) result.get("p_team_id");
 
         return switch (status) {
             case "SUCCESS" -> {
-                // TẠO JWT TOKEN THỰC TẾ
                 String token = jwtUtils.generateToken(username, role, teamId);
                 yield new LoginResponse(token, role, teamId);
             }
