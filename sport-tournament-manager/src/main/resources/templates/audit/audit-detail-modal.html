@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="auditModalFragment" class="modal fade" id="auditDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold text-uppercase" style="font-size: 0.9rem;">
+                    <i class="bi bi-braces-asterisk me-2 text-warning"></i>Chi tiết biên bản thay đổi dữ liệu
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-shadow="none" data-bs-top="close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4 bg-light">
+                <div class="row g-2 mb-3 bg-white p-2 border rounded mx-0 text-center small fw-semibold">
+                    <div class="col-md-4 border-end">Tài khoản: <span id="modalUser" class="text-danger">admin</span></div>
+                    <div class="col-md-4 border-end">Bảng: <span id="modalObj" class="text-dark">TRAN_DAU</span></div>
+                    <div class="col-md-4">Tác vụ: <span id="modalAction" class="badge bg-dark px-2">UPDATE</span></div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card h-100 border">
+                            <div class="card-header bg-danger bg-opacity-10 text-danger fw-bold small text-uppercase py-2">
+                                <i class="bi bi-file-earmark-minus-fill me-1"></i>Giá trị cũ (Dữ liệu trước thay đổi)
+                            </div>
+                            <div class="card-body bg-white font-monospace p-3 overflow-auto style-scroll-json" 
+                                 id="oldJsonBox" style="max-height: 400px; font-size: 0.85rem; white-space: pre-wrap;">
+                                </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card h-100 border">
+                            <div class="card-header bg-success bg-opacity-10 text-success fw-bold small text-uppercase py-2">
+                                <i class="bi bi-file-earmark-plus-fill me-1"></i>Giá trị mới (Dữ liệu sau thay đổi)
+                            </div>
+                            <div class="card-body bg-white font-monospace p-3 overflow-auto style-scroll-json" 
+                                 id="newJsonBox" style="max-height: 400px; font-size: 0.85rem; white-space: pre-wrap;">
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-white border-top">
+                <button type="button" class="btn btn-outline-secondary px-4 fw-semibold btn-sm rounded" data-bs-dismiss="modal">Đóng biên bản</button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
