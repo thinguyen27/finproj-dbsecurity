@@ -24,16 +24,22 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF vì Web dùng JWT (Stateless)
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // 1. Mở cửa tự do cho API Đăng nhập
-                .requestMatchers("/api/auth/login").permitAll()
+                // 1. Mở khóa toàn bộ file tĩnh (CSS, JS, Hình ảnh) để giao diện không bị vỡ
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
                 
-                // 2. KHÓA CHẾT: Chỉ Ban Tổ Chức mới được dùng API Quản trị Hệ thống
+                // 2. Mở khóa cho CÁC ĐƯỜNG DẪN GIAO DIỆN (Frontend URL)
+                // Phải mở khóa để trình duyệt load được khung file HTML
+                .requestMatchers("/", "/login", "/forgot-password", "/audit-dashboard", "/error").permitAll()                
+                // 3. Mở khóa API Đăng nhập của Backend
+                .requestMatchers("/api/auth/**").permitAll()
+                
+                // 4. KHÓA CHẾT: Phân quyền API Quản trị (Chỉ Ban Tổ Chức)
                 .requestMatchers("/api/admin/**").hasAuthority("Role_BTC")
                 
-                // 3. Phân quyền API Audit (Ban Tổ Chức và Giám Sát được xem)
+                // 5. Phân quyền API Audit (Ban Tổ Chức và Giám Sát được xem)
                 .requestMatchers("/api/audit/**").hasAnyAuthority("Role_BTC", "Role_GS")
                 
-                // 4. Các API khác bắt buộc phải có Token hợp lệ
+                // 6. Các API và đường dẫn khác bắt buộc phải có Token hợp lệ
                 .anyRequest().authenticated()
             )
             // Đẩy bộ lọc JWT của chúng ta lên kiểm tra trước tiên

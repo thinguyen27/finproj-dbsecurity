@@ -113,12 +113,51 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script th:inline="javascript">
+        // =========================================================================
+        // 1. SCRIPT BẢO MẬT GIAO DIỆN: CHẶN TRUY CẬP TRÁI PHÉP & GỌI API BẰNG TOKEN
+        // =========================================================================
+        const token = localStorage.getItem('jwtToken'); // Tên biến lưu ở localStorage lúc đăng nhập thành công
+        
+        if (!token) {
+            // Bị phát hiện không có giấy thông hành -> Đá về trang đăng nhập lập tức
+            window.location.href = '/login';
+        } else {
+            // Có Token -> Kẹp vào Header và gọi API để lấy dữ liệu (Stateless)
+            fetch('/api/audit/logs', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                // Nếu Token bị giả mạo, hết hạn hoặc không đủ quyền (không phải Ban Tổ Chức)
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem('jwtToken');
+                    window.location.href = '/login';
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Xác thực Token thành công. Dữ liệu từ Backend:", data);
+                // Ghi chú: Dữ liệu bảng hiện tại đang được render sẵn bằng Thymeleaf (SSR).
+                // Nếu nhóm Frontend muốn chuyển 100% sang Javascript (CSR), 
+                // có thể dùng vòng lặp data ở đây để append các thẻ <tr> vào <tbody>.
+            })
+            .catch(error => {
+                console.error("Lỗi khi kết nối đến API bảo mật:", error);
+            });
+        }
+
+        // =========================================================================
+        // 2. LOGIC RENDER BIỂU ĐỒ & POPUP MODAL (ĐÃ ĐƯỢC GIỮ NGUYÊN)
+        // =========================================================================
         document.addEventListener('DOMContentLoaded', function () {
             // Nhận dữ liệu MAP thống kê tổng hợp từ Backend gửi qua Model
             /*[ th:inline="javascript" ]*/
             const actionStats = /*[[${actionStats}]]*/ {"INSERT": 0, "UPDATE": 0, "DELETE": 0};
-			const objectStats = /*[[${objectStats}]]*/ {};
-			const timelineStats = /*[[${timelineStats}]]*/ {};
+            const objectStats = /*[[${objectStats}]]*/ {};
+            const timelineStats = /*[[${timelineStats}]]*/ {};
 
             // 1. Khởi tạo Biểu đồ Tròn (Action Type Pie Chart)
             new Chart(document.getElementById('actionPieChart'), {
