@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin-layout :: admin-layout(~{::content})}">
+
+<th:block th:fragment="content">
+    <div class="container-fluid my-5 px-4">
+
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-uppercase m-0 page-title">DANH SÁCH THÀNH VIÊN ĐỘI</h2>
+            <p class="text-muted small mt-2 text-uppercase fw-semibold" th:text="${currentTeam != null ? currentTeam.tenDoi : ''}">Tên Đội</p>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bundesliga align-middle">
+                <thead>
+                <tr>
+                    <th style="width: 6%;" class="text-nowrap">Mã TV</th>
+                    <th style="width: 5%;" class="text-center text-nowrap">Số áo</th>
+                    <th style="width: 14%;" class="text-nowrap">Họ và tên</th>
+                    <th style="width: 10%;" class="text-nowrap">Vai trò</th>
+                    <th style="width: 8%;" class="text-center text-nowrap">Ngày sinh</th>
+                    <th style="width: 6%;" class="text-center text-nowrap">Giới tính</th>
+                    <th style="width: 10%;" class="text-nowrap">CCCD</th>
+                    <th style="width: 10%;" class="text-nowrap">Số điện thoại</th>
+                    <th style="width: 13%;" class="text-nowrap">Email</th>
+                    <th style="width: 10%;">Sức khỏe</th>
+                    <th th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == currentTeam.maDoi)}" 
+                        class="text-end text-nowrap" style="padding-right: 24px;">Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="tv : ${memberList}">
+                    <td class="text-muted text-nowrap" th:text="${tv.maThanhVien}">TV001</td>
+                    <td class="text-center">
+                        <span class="fw-bold text-danger fs-5" th:text="${tv.soAo != null ? tv.soAo : '-'}">9</span>
+                    </td>
+                    <td>
+                        <span class="fw-bold text-dark text-nowrap" th:text="${tv.tenThanhVien}">Nguyễn Văn A</span>
+                    </td>
+                    <td class="text-nowrap">
+                        <span th:if="${tv.loaiThanhVien == 'CAU_THU'}" class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">Cầu thủ</span>
+                        <span th:if="${tv.loaiThanhVien == 'HLV_TRUONG'}" class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">HLV Trưởng</span>
+                        <span th:if="${tv.loaiThanhVien == 'HLV_PHO'}" class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">HLV Phó</span>
+                        <span th:if="${tv.loaiThanhVien == 'BAC_SI'}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Bác sĩ</span>
+                    </td>
+                    <td class="text-center text-secondary text-nowrap" th:text="${tv.ngaySinh}">2002-01-15</td>
+                    <td class="text-center text-secondary text-nowrap" th:text="${tv.gioiTinh}">Nam</td>
+                    
+                    <td class="text-nowrap">
+                        <span th:if="${tv.cccd == null || tv.cccd == ''}" class="text-muted">-</span>
+                        <span th:if="${tv.cccd != null && tv.cccd != ''}">
+                            <i th:if="${#strings.contains(tv.cccd,'*')}" class="bi bi-shield-lock-fill text-warning me-1" title="Data Redacted"></i>
+                            <code class="text-secondary" th:text="${tv.cccd}"></code>
+                        </span>
+                    </td>
+                    
+                    <td class="text-nowrap">
+                        <span th:if="${tv.soDienThoai == null || tv.soDienThoai == ''}" class="text-muted">-</span>
+                        <span th:if="${tv.soDienThoai != null && tv.soDienThoai != ''}">
+                            <i th:if="${#strings.contains(tv.soDienThoai,'*')}" class="bi bi-shield-lock-fill text-warning me-1" title="Data Redacted"></i>
+                            <code class="text-secondary" th:text="${tv.soDienThoai}"></code>
+                        </span>
+                    </td>
+                    
+                    <td class="text-nowrap">
+                        <span th:if="${tv.emailThanhVien == null || tv.emailThanhVien == ''}" class="text-muted">-</span>
+                        <span th:if="${tv.emailThanhVien != null && tv.emailThanhVien != ''}">
+                            <i th:if="${#strings.contains(tv.emailThanhVien,'*')}" class="bi bi-shield-lock-fill text-warning me-1" title="Data Redacted"></i>
+                            <span class="text-secondary" th:text="${tv.emailThanhVien}"></span>
+                        </span>
+                    </td>
+                    
+                    <td>
+                        <span th:if="${tv.thongTinSucKhoe == null || tv.thongTinSucKhoe == ''}" class="text-muted">Bình thường</span>
+                        <span th:if="${tv.thongTinSucKhoe != null && tv.thongTinSucKhoe != ''}">
+                            <i th:if="${#strings.contains(tv.thongTinSucKhoe,'*')}" class="bi bi-shield-lock-fill text-warning me-1" title="Data Redacted"></i>
+                            <span class="text-secondary small" th:text="${tv.thongTinSucKhoe}"></span>
+                        </span>
+                    </td>
+
+                    <td th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == currentTeam.maDoi)}" 
+                        class="text-end text-nowrap" style="padding-right: 24px;">
+                        <div class="btn-group gap-1">
+                            <a class="btn btn-outline-warning btn-sm rounded" th:href="@{/team/member/edit/{id}(id=${tv.maThanhVien})}">Sửa</a>
+                            <a class="btn btn-outline-danger btn-sm rounded" th:href="@{/team/member/delete/{id}(id=${tv.maThanhVien})}" onclick="return confirm('Xóa thành viên?')">Xóa</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(memberList)}">
+                    <td colspan="11" class="text-center py-4 text-muted fw-semibold">Đội bóng chưa đăng ký thành viên nào.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="/team" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
+                <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách đội
+            </a>
+            <a th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == currentTeam.maDoi)}"
+               th:href="@{/team/member/add(maDoi=${currentTeam.maDoi})}" class="btn btn-dark px-4 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i>Thêm thành viên
+            </a>
+        </div>
+
+    </div>
+</th:block>
+</html>
