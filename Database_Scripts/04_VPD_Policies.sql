@@ -51,7 +51,7 @@ CREATE OR REPLACE PACKAGE BODY SEC_ADMIN.PKG_SPORT_CONTEXT AS
     BEGIN
         DBMS_SESSION.CLEAR_CONTEXT(
                     namespace => 'SPORT_CTX',
-                    client_identifier => NULL,
+                    client_id => NULL,       
                     attribute => NULL
         );
     END CLEAR_SESSION;

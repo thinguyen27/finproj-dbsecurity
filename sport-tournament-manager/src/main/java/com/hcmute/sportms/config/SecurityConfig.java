@@ -29,7 +29,7 @@ public class SecurityConfig {
                 
                 // 2. Mở khóa cho CÁC ĐƯỜNG DẪN GIAO DIỆN (Frontend URL)
                 // Phải mở khóa để trình duyệt load được khung file HTML
-                .requestMatchers("/", "/login", "/forgot-password", "/audit-dashboard", "/error").permitAll()                
+                .requestMatchers("/", "/home", "/login", "/forgot-password", "/audit-dashboard", "/error").permitAll()                
                 // 3. Mở khóa API Đăng nhập của Backend
                 .requestMatchers("/api/auth/**").permitAll()
                 
