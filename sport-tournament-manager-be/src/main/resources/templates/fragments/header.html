@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+	<nav th:fragment="header"
+		class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm py-2">
+
+		<div class="container-fluid px-3">
+
+			<a class="navbar-brand fw-bold fs-6 text-nowrap me-3" href="/"> 
+				HỆ THỐNG QUẢN LÝ GIẢI ĐẤU THỂ THAO 
+			</a>
+
+			<button class="navbar-toggler" type="button"
+				data-bs-toggle="collapse" data-bs-target="#mainMenu">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+
+			<div class="collapse navbar-collapse" id="mainMenu">
+
+				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+					<li class="nav-item"><a class="nav-link text-nowrap px-2" href="/">Trang chủ</a></li>
+
+					<li class="nav-item"><a class="nav-link text-nowrap px-2" href="/tournament/list">Giải đấu</a></li>
+
+					<li class="nav-item"><a class="nav-link text-nowrap px-2" href="/team/list">Đội thi đấu</a></li>
+
+					<li th:if="${currentRole == 'ROLE_TT'}" class="nav-item">
+					    <a class="nav-link fw-bold text-success text-nowrap px-2"
+					       th:href="@{/match/my-matches}">
+					        <i class="bi bi-calendar-check me-1"></i>
+					        Trận đấu của tôi
+					    </a>
+					</li>
+
+					<li th:if="${currentRole != 'ROLE_TT'}" class="nav-item">
+					    <a class="nav-link text-nowrap px-2" href="/match">
+
+					        <span th:if="${currentRole == 'ROLE_BTC'}">
+					            Quản lý trận đấu
+					        </span>
+
+					        <span th:if="${currentRole != 'ROLE_BTC'}">
+					            Trận đấu
+					        </span>
+
+					    </a>
+					</li>
+
+					<li class="nav-item">
+					    <a class="nav-link text-nowrap px-2" href="/stadium">
+					        Sân thi đấu
+					    </a>
+					</li>
+
+					<li th:if="${currentRole == 'ROLE_BTC'}" class="nav-item">
+					    <a class="nav-link fw-semibold text-danger text-nowrap px-2"
+					       href="/user">
+
+					        <i class="bi bi-people-fill me-1"></i>
+
+					        Quản lý Tài khoản
+					    </a>
+					</li>
+
+					<li th:if="${currentRole == 'ROLE_BTC'}" class="nav-item">
+					    <a class="nav-link fw-semibold text-warning text-nowrap px-2"
+					       href="/audit">
+
+					        <i class="bi bi-shield-check me-1"></i>
+
+					        Giám sát hệ thống
+					    </a>
+					</li>
+
+				</ul>
+
+				<ul class="navbar-nav">
+
+				    <li class="nav-item dropdown">
+
+				        <a th:if="${currentUser != null}"
+				           class="nav-link dropdown-toggle"
+				           href="#"
+				           data-bs-toggle="dropdown">
+
+				            <i class="bi bi-person-circle fs-4"></i>
+
+				        </a>
+
+				        <ul class="dropdown-menu dropdown-menu-end"
+				            th:if="${currentUser != null}">
+
+				            <li>
+
+				                <span class="dropdown-item-text fw-bold"
+				                      th:text="${currentUser}">
+				                    admin
+				                </span>
+
+				            </li>
+
+				            <li><hr class="dropdown-divider"></li>
+
+				            <li>
+				                <a class="dropdown-item" href="/profile">
+				                    Thông tin cá nhân
+				                </a>
+				            </li>
+
+							<li>
+							    <a class="dropdown-item"
+							       href="/api/auth/logout">
+							       Đăng xuất
+							    </a>
+							</li>
+
+				        </ul>
+
+				        <a th:if="${currentUser == null}"
+				           class="nav-link"
+				           th:href="@{/login}">
+
+				            <i class="bi bi-person-circle fs-4"></i>
+
+				        </a>
+
+				    </li>
+
+				</ul>
+
+			</div>
+
+		</div>
+
+	</nav>
+	<script>
+	    function logout() {
+			alert("Đã bấm logout");
+	        // 1. Xóa Token trong LocalStorage
+	        localStorage.removeItem("jwt_token");
+	        
+	        // 2. Xóa Token trong Cookie (Ép ngày hết hạn về quá khứ)
+	        document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+	        
+	        // 3. Đá văng về trang Login
+			window.location.href = "/api/auth/logout";
+	    }
+	</script>
+</body>
+</html>

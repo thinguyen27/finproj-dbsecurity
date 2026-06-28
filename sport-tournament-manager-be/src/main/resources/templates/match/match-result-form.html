@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin-layout :: admin-layout(~{::content})}">
+
+<th:block th:fragment="content">
+    <div class="container my-5" th:if="${currentRole == 'ROLE_BTC' || currentRole == 'ROLE_TT'}">
+
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-uppercase m-0 page-title">
+                CẬP NHẬT BIÊN BẢN KẾT QUẢ TRẬN ĐẤU
+            </h2>
+            <p class="text-muted small mt-2 text-uppercase fw-semibold" style="letter-spacing: 1px;">Dành cho tổ trọng tài điều hành</p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <div class="match-row d-flex align-items-center mb-4 bg-white p-3 border rounded shadow-sm justify-content-between">
+                    <div class="fw-bold text-dark fs-5 text-end w-25" th:text="${match.maDoiA}">Đội nhà</div>
+                    <div class="bg-light border px-4 py-2 rounded text-center">
+                        <span class="fw-bold text-muted">BIÊN BẢN TRẬN ĐẤU</span>
+                        <small class="d-block text-secondary" th:text="${match.ngayGioThiDau}">19:30</small>
+                    </div>
+                    <div class="fw-bold text-dark fs-5 text-start w-25" th:text="${match.maDoiB}">Đội khách</div>
+                </div>
+
+                <div class="form-card">
+                    <form th:action="@{/match/result/save}" th:object="${match}" method="post">
+
+                        <input type="hidden" th:field="*{maTranDau}">
+                        <input type="hidden" th:field="*{maGiai}">
+                        <input type="hidden" th:field="*{vongDau}">
+                        <input type="hidden" th:field="*{ngayGioThiDau}">
+                        <input type="hidden" th:field="*{maSan}">
+                        <input type="hidden" th:field="*{maDoiA}">
+                        <input type="hidden" th:field="*{maDoiB}">
+
+                        <h5 class="fw-bold text-uppercase mb-4 section-subtitle text-primary" style="font-size: 0.9rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-scoreboard-fill me-2"></i>Cập nhật số bàn thắng
+                        </h5>
+
+                        <div class="row mb-4 bg-light p-3 rounded border mx-0">
+                            <div class="col-md-5">
+                                <label class="form-label mb-2 fw-semibold">Bàn thắng Đội nhà</label>
+                                <input class="form-control text-center fw-bold fs-3 text-primary" type="number" min="0" th:field="*{tySoDoiA}" required>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end justify-content-center pb-2">
+                                <span class="fs-2 fw-bold text-muted">-</span>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label mb-2 fw-semibold">Bàn thắng Đội khách</label>
+                                <input class="form-control text-center fw-bold fs-3 text-primary" type="number" min="0" th:field="*{tySoDoiB}" required>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-uppercase my-4 section-subtitle text-warning" style="font-size: 0.9rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-file-fill me-2"></i>Số thẻ phạt nhận được
+                        </h5>
+
+                        <div class="row mb-4">
+                            <div class="col-md-5 border-end">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label mb-2 text-warning fw-semibold"><i class="bi bi-file-fill me-1"></i>Thẻ vàng ĐN</label>
+                                        <input class="form-control text-center" type="number" min="0" th:field="*{theVangDoiA}">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label mb-2 text-danger fw-semibold"><i class="bi bi-file-fill me-1"></i>Thẻ đỏ ĐN</label>
+                                        <input class="form-control text-center" type="number" min="0" th:field="*{theDoDoiA}">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-2"></div>
+                            <div class="col-md-5">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label mb-2 text-warning fw-semibold"><i class="bi bi-file-fill me-1"></i>Thẻ vàng ĐK</label>
+                                        <input class="form-control text-center" type="number" min="0" th:field="*{theVangDoiB}">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label mb-2 text-danger fw-semibold"><i class="bi bi-file-fill me-1"></i>Thẻ đỏ ĐK</label>
+                                        <input class="form-control text-center" type="number" min="0" th:field="*{theDoDoiB}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="fw-bold text-uppercase my-4 section-subtitle text-secondary" style="font-size: 0.9rem; letter-spacing: 0.5px;">
+                            <i class="bi bi-gear-wide-connected me-2"></i>Trạng thái điều hành
+                        </h5>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <label class="form-label mb-2 fw-semibold">Trạng thái trận đấu</label>
+                                <select class="form-select fw-semibold text-secondary" th:field="*{trangThaiTran}" required>
+                                    <option value="PENDING">PENDING (Chưa diễn ra)</option>
+                                    <option value="PLAYING">PLAYING (Đang diễn ra)</option>
+                                    <option value="FINISHED">FINISHED (Đã kết thúc)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label mb-2 fw-semibold">Trạng thái phê duyệt kết quả</label>
+                                <select class="form-select fw-semibold text-danger" th:field="*{ketQuaStatus}" th:disabled="${currentRole != 'ROLE_BTC'}">
+                                    <option value="PENDING">PENDING (Đang chờ ban tổ chức duyệt)</option>
+                                    <option value="FINAL">FINAL (Đã chốt sổ / Khóa biên bản)</option>
+                                </select>
+                                <input type="hidden" th:if="${currentRole != 'ROLE_BTC'}" th:field="*{ketQuaStatus}">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a th:href="@{/match}" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
+                                <i class="bi bi-arrow-left me-2"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm">
+                                <i class="bi bi-cloud-arrow-up-fill me-2"></i>Gửi biên bản kết quả
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-5 text-center" th:if="${currentRole != 'ROLE_BTC' && currentRole != 'ROLE_TT'}">
+        <div class="alert alert-danger py-5 shadow-sm rounded">
+			<i class="bi bi-shield-slash-fill text-danger fs-1"></i>
+			<h3 class="fw-bold mt-3">TỪ CHỐI QUYỀN TRUY CẬP (403)</h3>
+			<p class="text-muted">Bạn không thuộc tổ trọng tài điều hành hoặc Ban tổ chức trận đấu này.</p>
+		</div>
+    </div>
+</th:block>
+</html>
