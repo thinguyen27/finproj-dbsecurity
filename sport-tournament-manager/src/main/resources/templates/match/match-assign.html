@@ -92,12 +92,12 @@
 							</label> 
 							<select class="form-select" name="varReferee" required>
 								<option value="" disabled selected>-- Chọn trọng tài VAR --</option>
-								<option
+						<option
 								    th:each="user : ${referees}"
 								    th:value="${user.username}"
 								    th:text="${user.hoTen}"
 								    th:selected="${assignment.varReferee == user.username}">
-								</option>
+
 							</select>
 						</div>
 

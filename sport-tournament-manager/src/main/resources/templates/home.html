@@ -28,8 +28,7 @@
         </div>
 
         <div th:if="${matches != null && !matches.isEmpty()}" class="match-tournament-group">
-            <div class="match-list">
-                
+            <div class="match-list"> 
                 <div th:each="m : ${matches}" class="match-row d-flex align-items-center bg-white p-2 mb-2 border rounded shadow-sm"
                      th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'live-match bg-danger-subtle border-danger' : ''">
                     
@@ -37,6 +36,7 @@
                          th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : 'text-muted'">
                         <i th:class="${m.trangThaiTran == 'PLAYING'} ? 'bi bi-activity fs-5 animate-pulse' : 
                                     (${m.trangThaiTran == 'FINISHED'} ? 'bi bi-check-circle-fill text-success fs-5' : 'bi bi-calendar3 fs-5')"></i>
+
                     </div>
                     
                     <div class="match-main-content d-flex align-items-center justify-content-center flex-grow-1 px-4">

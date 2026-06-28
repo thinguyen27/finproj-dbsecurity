@@ -37,7 +37,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 1. Đọc từ Authorization Header (API)
         // ======================
         String authHeader = request.getHeader("Authorization");
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
         }
@@ -52,6 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if ("jwt_token".equals(cookie.getName())) {
                     token = cookie.getValue();
                     break;
+        
                 }
 
             }

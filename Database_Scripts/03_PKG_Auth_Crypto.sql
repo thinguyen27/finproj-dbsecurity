@@ -4,19 +4,6 @@ SET ECHO ON;
 -- Kết nối bằng tài khoản quản trị an ninh mật mã
 CONN SEC_ADMIN/SEC_ADMIN;
 
--- Khởi tạo Application Context và Đặc tả Package quản lý
-CREATE OR REPLACE CONTEXT SPORTS_CTX USING SEC_ADMIN.PKG_SPORT_CONTEXT;
-
-CREATE OR REPLACE PACKAGE SEC_ADMIN.PKG_SPORT_CONTEXT
-AS
-    PROCEDURE INITIALIZE_SESSION(
-        p_username IN VARCHAR2,
-        p_role     IN VARCHAR2,
-        p_team_id  IN VARCHAR2
-    );
-END PKG_SPORT_CONTEXT;
-/
-
 -- Khởi tạo Đặc tả Package (Package Specification) quản trị mật mã và luồng đăng nhập hệ thống
 CREATE OR REPLACE PACKAGE SEC_ADMIN.PKG_CRYPTO_UTILS
 AUTHID DEFINER -- Thực thi bằng quyền của SEC_ADMIN để bảo vệ cấu trúc truy cập dữ liệu bảng hệ thống

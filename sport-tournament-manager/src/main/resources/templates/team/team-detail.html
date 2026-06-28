@@ -96,6 +96,7 @@
 
         <div class="d-flex justify-content-end gap-2 mt-4">
             <a href="/team/list" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
+
                 <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách đội
             </a>
             <a th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == currentTeam.maDoi)}"
