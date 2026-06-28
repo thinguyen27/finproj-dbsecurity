@@ -30,45 +30,40 @@
 
         <div th:if="${matches != null && !matches.isEmpty()}" class="match-tournament-group">
             <div class="match-list">
-                
                 <div th:each="m : ${matches}" class="match-row d-flex align-items-center bg-white p-2 mb-2 border rounded shadow-sm"
-                     th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'live-match bg-danger-subtle border-danger' : ''">
+                     th:classappend="${m.trangThaiTran == 'DANG_DIEN_RA'} ? 'live-match bg-danger-subtle border-danger' : ''">
                     
-                    <div class="match-status-icon ps-3" 
-                         th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : 'text-muted'">
-                        <i th:class="${m.trangThaiTran == 'PLAYING'} ? 'bi bi-activity fs-5 animate-pulse' : 
-                                    (${m.trangThaiTran == 'FINISHED'} ? 'bi bi-check-circle-fill text-success fs-5' : 'bi bi-calendar3 fs-5')"></i>
+                    <div class="match-status-icon ps-3" th:classappend="${m.trangThaiTran == 'DANG_DIEN_RA'} ? 'text-danger' : 'text-muted'">
+                        <i th:class="${m.trangThaiTran == 'DANG_DIEN_RA'} ? 'bi bi-activity fs-5 animate-pulse' : (${m.trangThaiTran == 'DA_KET_THUC'} ? 'bi bi-check-circle-fill text-success fs-5' : 'bi bi-calendar3 fs-5')"></i>
                     </div>
                     
                     <div class="match-main-content d-flex align-items-center justify-content-center flex-grow-1 px-4">
                         
-                        <div class="team-home text-end fw-bold text-dark" style="width: 35%;" th:text="${m.maDoiA}">Đội Chủ Nhà</div>
+                        <div class="team-home text-end fw-bold text-dark fs-5" style="width: 35%;" th:text="${m.tenDoiA}">Đội Chủ Nhà</div>
                         
                         <div class="match-score-box d-flex flex-column align-items-center mx-4" style="width: 25%;">
                             
-                            <div th:if="${m.trangThaiTran == 'FINISHED' || m.trangThaiTran == 'PLAYING'}" class="d-flex align-items-center">
-                                <span class="score-num fw-bold fs-4" th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : ''" th:text="${m.tySoDoiA}">0</span>
-                                <span class="score-divider mx-2 fw-bold fs-4" th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : ''">:</span>
-                                <span class="score-num fw-bold fs-4" th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : ''" th:text="${m.tySoDoiB}">0</span>
+                            <div th:if="${m.trangThaiTran == 'DA_KET_THUC' || m.trangThaiTran == 'DANG_DIEN_RA'}" class="d-flex align-items-center">
+                                <span class="score-num fw-bold fs-3" th:classappend="${m.trangThaiTran == 'DANG_DIEN_RA'} ? 'text-danger' : ''" th:text="${m.tySoDoiA}">0</span>
+                                <span class="score-divider mx-2 fw-bold fs-3" th:classappend="${m.trangThaiTran == 'DANG_DIEN_RA'} ? 'text-danger' : ''">-</span>
+                                <span class="score-num fw-bold fs-3" th:classappend="${m.trangThaiTran == 'DANG_DIEN_RA'} ? 'text-danger' : ''" th:text="${m.tySoDoiB}">0</span>
                             </div>
                             
-                            <div th:if="${m.trangThaiTran == 'PENDING'}" class="fw-bold text-primary fs-5 bg-primary-subtle px-3 py-1 rounded">
-                                <span th:text="${#strings.substring(m.ngayGioThiDau, 11, 16)}">19:30</span>
+                            <div th:if="${m.trangThaiTran == 'CHUA_DIEN_RA'}" class="fw-bold text-primary fs-5 bg-primary-subtle px-3 py-1 rounded">
+                                <span th:text="${#temporals.format(m.ngayGioThiDau, 'HH:mm')}">19:30</span>
                             </div>
                             
-                            <small class="text-muted text-nowrap mt-1 fw-semibold" style="font-size: 0.7rem;" 
-                                   th:text="${m.trangThaiTran == 'PENDING'} ? ${#strings.substring(m.ngayGioThiDau, 0, 10)} : 'Vòng ' + ${m.vongDau}">Thông tin lịch</small>
+                            <small class="text-muted text-nowrap mt-1 fw-semibold" style="font-size: 0.8rem;" th:text="${m.trangThaiTran == 'CHUA_DIEN_RA'} ? ${#temporals.format(m.ngayGioThiDau, 'dd/MM/yyyy')} : 'Vòng ' + ${m.vongDau}">Thông tin lịch</small>
                         </div>
                         
-                        <div class="team-away text-start fw-bold text-dark" style="width: 35%;" th:text="${m.maDoiB}">Đội Khách</div>
+                        <div class="team-away text-start fw-bold text-dark fs-5" style="width: 35%;" th:text="${m.tenDoiB}">Đội Khách</div>
                     </div>
                     
                     <div class="match-info-badge pe-3">
-                        <span th:if="${m.trangThaiTran == 'FINISHED'}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2">FT</span>
-                        <span th:if="${m.trangThaiTran == 'PLAYING'}" class="badge bg-danger text-white py-1 px-2 animate-pulse">LIVE</span>
-                        <span th:if="${m.trangThaiTran == 'PENDING'}" class="badge bg-light text-dark border py-1 px-2">SẮP ĐÁ</span>
+                        <span th:if="${m.trangThaiTran == 'DA_KET_THUC'}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2">FT</span>
+                        <span th:if="${m.trangThaiTran == 'DANG_DIEN_RA'}" class="badge bg-danger text-white py-1 px-2 animate-pulse">LIVE</span>
+                        <span th:if="${m.trangThaiTran == 'CHUA_DIEN_RA'}" class="badge bg-light text-dark border py-1 px-2">SẮP ĐÁ</span>
                     </div>
-                    
                 </div>
             </div>
         </div>

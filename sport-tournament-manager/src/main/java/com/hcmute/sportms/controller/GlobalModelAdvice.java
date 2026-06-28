@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class GlobalModelAdvice {
 
-    // Tự động thêm biến "username" vào mọi giao diện Thymeleaf nếu đã đăng nhập
     @ModelAttribute("username")
     public String getUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -18,14 +17,13 @@ public class GlobalModelAdvice {
         return null;
     }
 
-    // Tự động thêm biến "role" vào mọi giao diện Thymeleaf nếu đã đăng nhập
     @ModelAttribute("role")
     public String getRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             if (!auth.getAuthorities().isEmpty()) {
-                // Trả về Role đầu tiên (VD: ROLE_BTC)
-                return auth.getAuthorities().iterator().next().getAuthority();
+                // THÊM .toUpperCase() Ở ĐÂY ĐỂ ÉP CHỮ IN HOA:
+                return auth.getAuthorities().iterator().next().getAuthority().toUpperCase();
             }
         }
         return null;

@@ -31,8 +31,7 @@ public class SecurityConfig {
                     .requestMatchers("/api/auth/**").permitAll()
                     
                     // Khóa bảo vệ trang Giao diện Dashboard và API (Cả 2 đều yêu cầu quyền BTC)
-                    .requestMatchers("/audit-dashboard", "/api/audit/**").hasAnyAuthority("Role_BTC")
-                    
+                    .requestMatchers("/audit-dashboard", "/api/audit/**").hasAnyAuthority("ROLE_BTC")                    
                     // Tất cả các trang HTML nghiệp vụ khác như /my-matches,... phải đăng nhập mới xem được
                     .anyRequest().authenticated()
                 )

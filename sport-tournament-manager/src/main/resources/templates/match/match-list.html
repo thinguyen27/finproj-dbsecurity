@@ -19,7 +19,7 @@
                 <div class="d-flex align-items-center gap-3">
                     <span class="day-date text-muted fw-semibold" th:text="'Tổng số: ' + ${matches.size()} + ' trận'">Tổng số trận</span>
                     
-                    <a th:if="${session.role == 'ROLE_BTC'}" 
+                    <a th:if="${role == 'ROLE_BTC'}" 
                        th:href="@{/match/add}" 
                        class="btn btn-dark btn-sm fw-semibold shadow-sm px-3">
                         <i class="bi bi-plus-lg me-1"></i> Thêm trận
@@ -27,82 +27,78 @@
                 </div>
             </div>
 
-            <div class="match-list">
-                
-                <div th:each="m : ${matches}" class="match-row d-flex align-items-center bg-white p-2 mb-2 border rounded shadow-sm"
-                     th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'live-match' : ''">
-                    
-                    <div class="match-status-icon ps-3" 
-                         th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : 'text-muted'">
-                        <i th:class="${m.trangThaiTran == 'PLAYING'} ? 'bi bi-activity fs-5 animate-pulse' : 
-                                    (${m.trangThaiTran == 'FINISHED'} ? 'bi bi-check-circle-fill text-success fs-5' : 'bi bi-calendar3 fs-5')"></i>
-                    </div>
-                    
-                    <div class="match-main-content d-flex align-items-center justify-content-center flex-grow-1 px-4">
-                        
-                        <div class="team-home text-end fw-bold text-dark" style="width: 35%;" th:text="${m.maDoiA}">Đội A</div>
-                        
-                        <div class="match-score-box d-flex flex-column align-items-center mx-4" style="width: 20%;">
+            <div class="table-responsive bg-white rounded shadow-sm p-3 border">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã Trận</th>
+                            <th>Thời gian</th>
+                            <th class="text-center">Trận đấu</th>
+                            <th>Sân vận động</th>
+                            <th>Trạng thái</th>
+                            <th th:if="${role == 'ROLE_BTC' || role == 'ROLE_TT'}" class="text-center">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="match : ${matches}">
+                            <td class="fw-semibold text-primary" th:text="${match.maTranDau}"></td>
                             
-                            <div th:if="${m.trangThaiTran == 'FINISHED' || m.trangThaiTran == 'PLAYING'}" class="d-flex align-items-center">
-                                <span class="score-num fw-bold fs-4" th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : ''" th:text="${m.tySoDoiA}">0</span>
-                                <span class="score-divider mx-2 fw-bold fs-4" th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : ''">:</span>
-                                <span class="score-num fw-bold fs-4" th:classappend="${m.trangThaiTran == 'PLAYING'} ? 'text-danger' : ''" th:text="${m.tySoDoiB}">0</span>
-                            </div>
+                            <td th:text="${#temporals.format(match.ngayGioThiDau, 'dd/MM/yyyy HH:mm')}"></td>
                             
-                            <div th:if="${m.trangThaiTran == 'PENDING'}" class="fw-bold text-secondary fs-6">
-                                <span th:text="${#strings.substring(m.ngayGioThiDau, 11, 16)}">19:30</span>
-                            </div>
+                            <td class="text-center">
+                                <span class="fw-bold" th:text="${match.tenDoiA}"></span>
+                                <span class="mx-2 badge bg-dark fs-6" 
+                                      th:text="${match.tySoDoiA != null ? match.tySoDoiA + ' - ' + match.tySoDoiB : 'VS'}">
+                                </span>
+                                <span class="fw-bold" th:text="${match.tenDoiB}"></span>
+                            </td>
                             
-                            <small class="text-muted text-nowrap" style="font-size: 0.65rem;" 
-                                   th:text="${m.trangThaiTran == 'PENDING'} ? ${#strings.substring(m.ngayGioThiDau, 0, 10)} : 'Vòng ' + ${m.vongDau}">Vòng đấu</small>
-                        </div>
-                        
-                        <div class="team-away text-start fw-bold text-dark" style="width: 35%;" th:text="${m.maDoiB}">Đội B</div>
-                    </div>
-                    
-                    <div class="match-info-badge pe-3">
-                        <span th:if="${m.trangThaiTran == 'FINISHED'}" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle py-1 px-2">FT</span>
-                        <span th:if="${m.trangThaiTran == 'PLAYING'}" class="badge bg-danger-subtle text-danger border border-danger-subtle py-1 px-2">LIVE</span>
-                        <span th:if="${m.trangThaiTran == 'PENDING'}" class="badge bg-light text-dark border py-1 px-2" th:text="'Vòng ' + ${m.vongDau}">Vòng 1</span>
-                    </div>
+                            <td th:text="${match.tenSan}"></td>
+                            
+                            <td>
+                                <span class="badge bg-secondary" th:if="${match.trangThaiTran == 'CHUA_DIEN_RA'}">Chưa diễn ra</span>
+                                <span class="badge bg-success" th:if="${match.trangThaiTran == 'DA_KET_THUC'}">Đã kết thúc</span>
+                                <span class="badge bg-danger" th:if="${match.trangThaiTran == 'DANG_DIEN_RA'}">Đang đá</span>
+                            </td>
 
-                    <div th:if="${session.role == 'ROLE_BTC' || session.role == 'ROLE_TT'}" class="match-actions pe-2 border-start ps-3 flex-shrink-0">
-                        <div class="btn-group gap-1">
-                            
-                            <a class="btn btn-outline-success btn-sm rounded text-nowrap" 
-                               th:href="@{/match/result/edit/{id}(id=${m.maTranDau})}"
-                               title="Cập nhật tỷ số & thẻ phạt">
-                                <i class="bi bi-scoreboard me-1"></i> Tỷ số
-                            </a>
+                            <td th:if="${role == 'ROLE_BTC' || role == 'ROLE_TT'}" class="text-center">
+                                <div class="btn-group gap-1">
+                                    
+                                    <a class="btn btn-outline-success btn-sm rounded text-nowrap" 
+                                       th:href="@{/match/result/edit/{id}(id=${match.maTranDau})}"
+                                       title="Cập nhật tỷ số & thẻ phạt">
+                                        <i class="bi bi-scoreboard me-1"></i> Tỷ số
+                                    </a>
 
-                            <a th:if="${session.role == 'ROLE_BTC'}"
-                               class="btn btn-outline-primary btn-sm rounded text-nowrap" 
-                               th:href="@{/match/assign(maTranDau=${m.maTranDau})}"
-                               title="Phân công trọng tài & giám sát">
-                                <i class="bi bi-shield-lock-fill me-1"></i> Phân công
-                            </a>
+                                    <a th:if="${role == 'ROLE_BTC'}"
+                                       class="btn btn-outline-primary btn-sm rounded text-nowrap" 
+                                       th:href="@{/match/assign(maTranDau=${match.maTranDau})}"
+                                       title="Phân công">
+                                        <i class="bi bi-shield-lock-fill"></i>
+                                    </a>
+                                    
+                                    <a th:if="${role == 'ROLE_BTC'}"
+                                       class="btn btn-outline-warning btn-sm rounded text-nowrap" 
+                                       th:href="@{/match/edit/{id}(id=${match.maTranDau})}"
+                                       title="Sửa trận">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                    
+                                    <a th:if="${role == 'ROLE_BTC'}"
+                                       class="btn btn-outline-danger btn-sm rounded text-nowrap" 
+                                       th:href="@{/match/delete/{id}(id=${match.maTranDau})}"
+                                       onclick="return confirm('Bạn có chắc chắn muốn xóa trận đấu này?')"
+                                       title="Xóa trận">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
                             
-                            <a th:if="${session.role == 'ROLE_BTC'}"
-                               class="btn btn-outline-warning btn-sm rounded text-nowrap" 
-                               th:href="@{/match/edit/{id}(id=${m.maTranDau})}"
-                               title="Sửa lịch thi đấu">
-                                Sửa
-                            </a>
-                            
-                            <a th:if="${session.role == 'ROLE_BTC'}"
-                               class="btn btn-outline-danger btn-sm rounded text-nowrap" 
-                               th:href="@{/match/delete/{id}(id=${m.maTranDau})}"
-                               onclick="return confirm('Bạn có chắc chắn muốn xóa trận đấu này?')"
-                               title="Xóa trận">
-                                Xóa
-                            </a>
-                        </div>
-                    </div>
-                    
-                </div>
-                
+                        </tr>
+                    </tbody>
+                </table>
             </div>
+
         </div>
 
     </div>
