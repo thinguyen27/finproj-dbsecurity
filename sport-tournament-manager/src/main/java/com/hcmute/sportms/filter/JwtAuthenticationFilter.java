@@ -29,26 +29,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         
         String authHeader = request.getHeader("Authorization");
+        String token = null;
         
+        // 1. Cố gắng lấy Token từ Header (Dành cho REST API Call)
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+            token = authHeader.substring(7);
+        } 
+        // 2. Nếu không có Header, thử lấy từ Cookie (Dành cho load trang giao diện Thymeleaf)
+        else if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("sportms_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        
+        // 3. Tiến hành giải mã nếu tìm thấy Token
+        if (token != null) {
             try {
-                // Giải mã Token
                 Claims claims = jwtUtils.parseToken(token);
                 String username = claims.getSubject();
                 String role = claims.get("role", String.class);
                 
-                // Nếu Token hợp lệ, tạo chứng nhận an ninh cho Request này
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    
-                    // Nạp role vào danh sách Quyền của Spring Security
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
-                    
-                    // Nhét toàn bộ Claims vào phần Credentials để Aspect phía sau dùng lại (đỡ phải parse JWT 2 lần)
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             username, claims, Collections.singletonList(authority)
                     );
-                    
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (Exception e) {
@@ -56,7 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         
-        // Cho phép Request đi tiếp tới Controller
         filterChain.doFilter(request, response);
     }
 }

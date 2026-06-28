@@ -102,7 +102,7 @@
 		            const data = await response.json();
 		            // Lưu JWT Token vào LocalStorage
 		            localStorage.setItem('sportms_token', data.token); 
-		            
+		            document.cookie = "sportms_token=" + data.token + "; path=/; SameSite=Strict";		            
 		            alert("Đăng nhập thành công!");
 		            window.location.href = '/home'; // Điều hướng về trang chủ
 		        } else {

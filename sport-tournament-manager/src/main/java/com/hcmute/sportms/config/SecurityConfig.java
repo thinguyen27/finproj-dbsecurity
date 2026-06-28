@@ -24,24 +24,18 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF vì Web dùng JWT (Stateless)
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // 1. Mở khóa toàn bộ file tĩnh (CSS, JS, Hình ảnh) để giao diện không bị vỡ
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
-                
-                // 2. Mở khóa cho CÁC ĐƯỜNG DẪN GIAO DIỆN (Frontend URL)
-                // Phải mở khóa để trình duyệt load được khung file HTML
-                .requestMatchers("/", "/home", "/login", "/forgot-password", "/audit-dashboard", "/error").permitAll()                
-                // 3. Mở khóa API Đăng nhập của Backend
-                .requestMatchers("/api/auth/**").permitAll()
-                
-                // 4. KHÓA CHẾT: Phân quyền API Quản trị (Chỉ Ban Tổ Chức)
-                .requestMatchers("/api/admin/**").hasAuthority("Role_BTC")
-                
-                // 5. Phân quyền API Audit (Ban Tổ Chức và Giám Sát được xem)
-                .requestMatchers("/api/audit/**").hasAnyAuthority("Role_BTC", "Role_GS")
-                
-                // 6. Các API và đường dẫn khác bắt buộc phải có Token hợp lệ
-                .anyRequest().authenticated()
-            )
+                    .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
+                    
+                    // Thu hẹp lại, chỉ thả cửa trang chủ, đăng nhập, quên mật khẩu
+                    .requestMatchers("/", "/home", "/login", "/forgot-password", "/error").permitAll()                
+                    .requestMatchers("/api/auth/**").permitAll()
+                    
+                    // Khóa bảo vệ trang Giao diện Dashboard và API (Cả 2 đều yêu cầu quyền BTC)
+                    .requestMatchers("/audit-dashboard", "/api/audit/**").hasAnyAuthority("Role_BTC")
+                    
+                    // Tất cả các trang HTML nghiệp vụ khác như /my-matches,... phải đăng nhập mới xem được
+                    .anyRequest().authenticated()
+                )
             // Đẩy bộ lọc JWT của chúng ta lên kiểm tra trước tiên
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
             

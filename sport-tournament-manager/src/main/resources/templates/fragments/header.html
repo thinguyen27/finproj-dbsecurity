@@ -21,33 +21,31 @@
 				<ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
 					<li class="nav-item"><a class="nav-link text-nowrap px-2" href="/">Trang chủ</a></li>
-
 					<li class="nav-item"><a class="nav-link text-nowrap px-2" href="/tournament">Giải đấu</a></li>
-
 					<li class="nav-item"><a class="nav-link text-nowrap px-2" href="/team">Đội thi đấu</a></li>
 
-					<li th:if="${session.role == 'ROLE_TT'}" class="nav-item">
+					<li th:if="${role == 'ROLE_TT'}" class="nav-item">
 					    <a class="nav-link fw-bold text-success text-nowrap px-2" th:href="@{/match/my-matches}"> 
 					        <i class="bi bi-calendar-check me-1"></i>Trận đấu của tôi
 					    </a>
 					</li>
 					
-					<li th:if="${session.role != 'ROLE_TT'}" class="nav-item">
+					<li th:if="${role != 'ROLE_TT'}" class="nav-item">
 					    <a class="nav-link text-nowrap px-2" href="/match">
-					        <span th:if="${session.role == 'ROLE_BTC'}">Quản lý trận đấu</span>
-					        <span th:if="${session.role != 'ROLE_BTC'}">Trận đấu</span>
+					        <span th:if="${role == 'ROLE_BTC'}">Quản lý trận đấu</span>
+					        <span th:if="${role != 'ROLE_BTC'}">Trận đấu</span>
 					    </a>
 					</li>
 					
 					<li class="nav-item"><a class="nav-link text-nowrap px-2" href="/stadium">Sân thi đấu</a></li>
 
-					<li th:if="${session.role == 'ROLE_BTC'}" class="nav-item">
+					<li th:if="${role == 'ROLE_BTC'}" class="nav-item">
 					    <a class="nav-link fw-semibold text-danger text-nowrap px-2" href="/user">
 					        <i class="bi bi-people-fill me-1"></i> Quản lý Tài khoản
 					    </a>
 					</li>
 
-					<li th:if="${session.role == 'ROLE_BTC'}" class="nav-item">
+					<li th:if="${role == 'ROLE_BTC'}" class="nav-item">
 					    <a class="nav-link fw-semibold text-warning text-nowrap px-2" href="/audit">
 					        <i class="bi bi-shield-check me-1"></i> Giám sát hệ thống
 					    </a>
@@ -57,27 +55,41 @@
 
 				<ul class="navbar-nav">
 					<li class="nav-item dropdown"><a
-						th:if="${session.username != null}"
+						th:if="${username != null}"
 						class="nav-link dropdown-toggle" href="#"
 						data-bs-toggle="dropdown"> <i class="bi bi-person-circle fs-4"></i>
 					</a>
 
 						<ul class="dropdown-menu dropdown-menu-end"
-							th:if="${session.username != null}">
+							th:if="${username != null}">
 							<li><span class="dropdown-item-text fw-bold"
-								th:text="${session.username}"> admin </span></li>
+								th:text="${username}"> admin </span></li>
 							<li><hr class="dropdown-divider"></li>
 							<li><a class="dropdown-item" href="/profile"> Thông tin cá nhân </a></li>
-							<li><a class="dropdown-item" href="/logout"> Đăng xuất </a></li>
-						</ul> <a th:if="${session.username == null}" class="nav-link"
-						th:href="@{/login}"> <i class="bi bi-person-circle fs-4"></i>
-					</a></li>
+							<li><a id="logoutBtn" class="dropdown-item text-danger" href="#"> Đăng xuất </a></li>
+						</ul> 
+						<a th:if="${username == null}" class="nav-link" th:href="@{/login}"> 
+						    <i class="bi bi-person-circle fs-4"></i>
+						</a>
+					</li>
 				</ul>
 
 			</div>
 
 		</div>
 
+		<script>
+		document.getElementById('logoutBtn')?.addEventListener('click', function(e) {
+		    e.preventDefault();
+		    // 1. Xóa trong LocalStorage
+		    localStorage.removeItem('sportms_token');
+		    // 2. Xóa Cookie bằng cách set thời gian sống về quá khứ (max-age=0)
+		    document.cookie = "sportms_token=; path=/; max-age=0;";
+		    
+		    alert("Đã đăng xuất an toàn!");
+		    window.location.href = '/login';
+		});
+		</script>
 	</nav>
 
 </body>
