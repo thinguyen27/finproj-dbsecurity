@@ -66,6 +66,7 @@
 								th:text="${username}"> admin </span></li>
 							<li><hr class="dropdown-divider"></li>
 							<li><a class="dropdown-item" href="/profile"> Thông tin cá nhân </a></li>
+							<li><a class="dropdown-item fw-semibold" href="/reset-password"><i class="bi bi-key-fill me-1"></i> Đổi mật khẩu </a></li>
 							<li><a id="logoutBtn" class="dropdown-item text-danger" href="#"> Đăng xuất </a></li>
 						</ul> 
 						<a th:if="${username == null}" class="nav-link" th:href="@{/login}"> 

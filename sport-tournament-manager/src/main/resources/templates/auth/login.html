@@ -4,107 +4,81 @@
 
 <body>
 
-	<div id="content"
-		style="background: #f3f3f3; padding: 50px 0; min-height: 80vh;">
-
+	<div id="content" style="background: #f3f3f3; padding: 50px 0; min-height: 80vh;">
 		<div class="container">
-
 			<div class="row justify-content-center">
-
 				<div class="col-md-5">
 
-					<h1 class="fw-bold text-center">TÀI KHOẢN GIẢI ĐẤU THỂ THAO</h1>
-
-					<p class="text-center text-secondary">Đăng nhập để sử dụng hệ
-						thống quản lý giải đấu thể thao.</p>
+					<h1 class="fw-bold text-center">TÀI KHOẢN GIẢI ĐẤU</h1>
+					<p class="text-center text-secondary">Hệ thống quản lý giải đấu thể thao chuyên nghiệp.</p>
 
 					<div class="card shadow border-0 mt-4">
-
 						<div class="card-header bg-white border-0 p-0">
-
 							<ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
-
 								<li class="nav-item" role="presentation">
-									<button class="nav-link active text-dark fw-bold"
-										id="login-tab" data-bs-toggle="tab"
-										data-bs-target="#login-pane" type="button" role="tab">
-										ĐĂNG NHẬP</button>
+									<button class="nav-link active text-dark fw-bold" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane" type="button" role="tab">ĐĂNG NHẬP</button>
 								</li>
-
 								<li class="nav-item" role="presentation">
-									<button class="nav-link text-dark fw-bold" id="signup-tab"
-										data-bs-toggle="tab" data-bs-target="#signup-pane"
-										type="button" role="tab">ĐĂNG KÝ</button>
+									<button class="nav-link text-dark fw-bold" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-pane" type="button" role="tab">ĐĂNG KÝ</button>
 								</li>
-
 							</ul>
-
 						</div>
 
-						<div class="card-body p-5">
+						<div class="card-body p-4 p-md-5">
+						    
+						    <div th:if="${success}" class="alert alert-success small py-2 text-center fw-bold"><i class="bi bi-check-circle me-1"></i><span th:text="${success}"></span></div>
+                            <div th:if="${error}" class="alert alert-danger small py-2 text-center fw-bold"><i class="bi bi-x-circle me-1"></i><span th:text="${error}"></span></div>
+
 							<div class="tab-content" id="myTabContent">
 
 								<div class="tab-pane fade show active" id="login-pane" role="tabpanel">
 									<form id="loginForm">
-										<input id="loginUsername" class="form-control form-control-lg mb-3" type="text"
-											name="username" placeholder="Tên đăng nhập" required>
-
-										<input id="loginPassword" class="form-control form-control-lg mb-3"
-											type="password" name="password" placeholder="Mật khẩu" required>
+										<input id="loginUsername" class="form-control form-control-lg mb-3 bg-light" type="text" name="username" placeholder="Tên đăng nhập" required>
+										<input id="loginPassword" class="form-control form-control-lg mb-3 bg-light" type="password" name="password" placeholder="Mật khẩu" required>
 
 										<div class="text-end mb-3">
-											<a th:href="@{/forgot-password}" class="text-secondary text-decoration-none small fw-semibold">
-												<i class="bi bi-question-circle me-1"></i>Quên mật khẩu?
-											</a>
+											<a th:href="@{/forgot-password}" class="text-primary text-decoration-none small fw-semibold">Quên mật khẩu?</a>
 										</div>
-										<button type="submit" class="btn btn-secondary w-100 mb-3">ĐĂNG NHẬP</button>
+										<button type="submit" class="btn btn-dark w-100 mb-3 py-2 fw-bold">ĐĂNG NHẬP</button>
 									</form>
 								</div>
 
 								<div class="tab-pane fade" id="signup-pane" role="tabpanel">
-									<form id="registerForm">
-										<input id="regEmail" class="form-control form-control-lg mb-3" type="email" placeholder="Email" required>
-										<input id="regPassword" class="form-control form-control-lg mb-3" type="password" placeholder="Mật khẩu" required>
-										<button type="submit" class="btn btn-dark w-100 mb-3">ĐĂNG KÝ</button>
+									<form method="post" th:action="@{/register}">
+										<input class="form-control mb-3" type="text" name="username" placeholder="Tên đăng nhập *" required>
+										<input class="form-control mb-3" type="password" name="password" placeholder="Mật khẩu *" required minlength="6">
+										<input class="form-control mb-3" type="text" name="fullName" placeholder="Họ và tên *" required>
+										<input class="form-control mb-3" type="email" name="email" placeholder="Email liên hệ *" required>
+										<input class="form-control mb-4" type="text" name="phone" placeholder="Số điện thoại">
+										<button type="submit" class="btn btn-primary w-100 mb-2 py-2 fw-bold">TẠO TÀI KHOẢN</button>
 									</form>
 								</div>
 
 							</div>
-							<hr>
 						</div>
-
 					</div>
-
 				</div>
-
 			</div>
-
 		</div>
 
 		<script>
-		// XỬ LÝ SỰ KIỆN ĐĂNG NHẬP
 		document.getElementById('loginForm').addEventListener('submit', async function(e) {
-		    e.preventDefault(); // Chặn hành vi tải lại trang mặc định của HTML Form
-
+		    e.preventDefault(); 
 		    const username = document.getElementById('loginUsername').value;
 		    const password = document.getElementById('loginPassword').value;
 
 		    try {
 		        const response = await fetch('/api/auth/login', {
 		            method: 'POST',
-		            headers: {
-		                'Content-Type': 'application/json'
-		            },
+		            headers: { 'Content-Type': 'application/json' },
 		            body: JSON.stringify({ username, password })
 		        });
 
 		        if (response.ok) {
 		            const data = await response.json();
-		            // Lưu JWT Token vào LocalStorage
-		            localStorage.setItem('sportms_token', data.token); 
+		            sessionStorage.setItem('sportms_token', data.token); 
 		            document.cookie = "sportms_token=" + data.token + "; path=/; SameSite=Strict";		            
-		            alert("Đăng nhập thành công!");
-		            window.location.href = '/home'; // Điều hướng về trang chủ
+		            window.location.href = '/home';
 		        } else {
 		            const errorData = await response.json();
 		            alert("Đăng nhập thất bại: " + (errorData.message || "Sai tài khoản/mật khẩu"));
@@ -114,20 +88,7 @@
 		        alert("Không thể kết nối đến máy chủ.");
 		    }
 		});
-
-		// XỬ LÝ SỰ KIỆN ĐĂNG KÝ (Chuẩn bị sẵn cấu trúc)
-		document.getElementById('registerForm').addEventListener('submit', async function(e) {
-		    e.preventDefault();
-		    
-		    const email = document.getElementById('regEmail').value;
-		    const password = document.getElementById('regPassword').value;
-
-		    alert("Đang gọi API đăng ký với email: " + email);
-		    // Tương lai thực hiện fetch('/api/auth/register') tại đây
-		});
 		</script>
-
 	</div>
-	
 </body>
 </html>

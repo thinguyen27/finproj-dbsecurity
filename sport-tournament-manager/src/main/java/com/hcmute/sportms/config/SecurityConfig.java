@@ -27,7 +27,7 @@ public class SecurityConfig {
                     .requestMatchers("/css/**", "/js/**", "/images/**", "/static/**").permitAll()
                     
                     // Thu hẹp lại, chỉ thả cửa trang chủ, đăng nhập, quên mật khẩu
-                    .requestMatchers("/", "/home", "/login", "/forgot-password", "/error").permitAll()                
+                    .requestMatchers("/", "/home", "/login", "/register", "/forgot-password", "/reset-password", "/error").permitAll()                
                     .requestMatchers("/api/auth/**").permitAll()
                     
                     // Khóa bảo vệ trang Giao diện Dashboard và API (Cả 2 đều yêu cầu quyền BTC)
