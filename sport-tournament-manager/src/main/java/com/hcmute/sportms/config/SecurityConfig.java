@@ -24,18 +24,27 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF vì Web dùng JWT (Stateless)
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // 1. Mở cửa tự do cho API Đăng nhập
-                .requestMatchers("/api/auth/login").permitAll()
-                
-                // 2. KHÓA CHẾT: Chỉ Ban Tổ Chức mới được dùng API Quản trị Hệ thống
-                .requestMatchers("/api/admin/**").hasAuthority("Role_BTC")
-                
-                // 3. Phân quyền API Audit (Ban Tổ Chức và Giám Sát được xem)
-                .requestMatchers("/api/audit/**").hasAnyAuthority("Role_BTC", "Role_GS")
-                
-                // 4. Các API khác bắt buộc phải có Token hợp lệ
-                .anyRequest().authenticated()
-            )
+            	    // Static resources
+            	    .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/assets/**").permitAll()
+            	    .requestMatchers("/login", "/signup", "/forgot-password", "/", "/index", "/home").permitAll()
+            	    .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
+            	    
+            	    // 1. Phân hệ MATCH
+            	    .requestMatchers("/match/my-matches").hasAuthority("ROLE_TT") 
+            	    .requestMatchers("/match", "/match/list", "/match/detail/**").permitAll() 
+            	    
+            	    // 2. Phân hệ TEAM & TOURNAMENT
+            	    .requestMatchers("/team/list", "/team/detail/**", "/tournament/list", "/tournament/detail/**", "/stadium/**").permitAll()
+            	    .requestMatchers("/team/add/**", "/team/delete/**", "/user/**").hasAuthority("ROLE_BTC")
+            	    .requestMatchers("/team/edit/**").hasAnyAuthority("ROLE_BTC", "ROLE_TD")
+            	    
+            	    // 3. Phân hệ ADMIN & AUDIT
+            	    .requestMatchers("/admin/**").hasAuthority("ROLE_BTC")
+            	    .requestMatchers("/audit/**").hasAnyAuthority("ROLE_BTC", "ROLE_GS")
+            	    
+            	    // Các API khác bắt buộc phải có Token hợp lệ
+            	    .anyRequest().authenticated()
+            	)
             // Đẩy bộ lọc JWT của chúng ta lên kiểm tra trước tiên
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
             

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin-layout :: admin-layout(~{::content})}">
+
+<th:block th:fragment="content">
+
+<div class="container my-5">
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-uppercase page-title">
+            DANH SÁCH TRẬN ĐẤU
+        </h2>
+    </div>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h5 class="fw-bold text-primary mb-1">
+                <i class="bi bi-trophy-fill me-2"></i>LỊCH THI ĐẤU
+            </h5>
+
+            <small class="text-muted"
+                   th:text="'Tổng số: ' + ${#lists.size(matches)} + ' trận'">
+                Tổng số trận
+            </small>
+        </div>
+
+        <a th:if="${currentRole == 'ROLE_BTC'}"
+           th:href="@{/match/add}"
+           class="btn btn-dark">
+            <i class="bi bi-plus-lg me-2"></i>
+            Thêm trận
+        </a>
+
+    </div>
+
+    <!-- Match List -->
+    <div class="match-list">
+
+        <div class="match-row border rounded shadow-sm bg-white p-3 mb-3"
+             th:each="m : ${matches}">
+
+            <div class="row align-items-center">
+
+                <!-- Đội A -->
+                <div class="col-4 text-end fw-bold fs-5"
+                     th:text="${m.doiA.tenDoi}">
+                    Đội A
+                </div>
+
+                <!-- Tỷ số -->
+                <div class="col-2 text-center">
+
+                    <div th:if="${m.trangThaiTran == 'PENDING'}">
+
+                        <div class="fw-bold"
+                             th:text="${#strings.substring(m.ngayGioThiDau,11,16)}">
+                            19:30
+                        </div>
+
+                        <small class="text-muted"
+                               th:text="${#strings.substring(m.ngayGioThiDau,0,10)}">
+                            2026-06-28
+                        </small>
+
+                    </div>
+
+                    <div th:unless="${m.trangThaiTran == 'PENDING'}">
+
+                        <span class="fw-bold fs-3"
+                              th:text="${m.tySoDoiA}">
+                            0
+                        </span>
+
+                        <span class="mx-2 fw-bold fs-3">:</span>
+
+                        <span class="fw-bold fs-3"
+                              th:text="${m.tySoDoiB}">
+                            0
+                        </span>
+
+                        <br>
+
+                        <small class="text-muted"
+                               th:text="'Vòng ' + ${m.vongDau}">
+                            Vòng
+                        </small>
+
+                    </div>
+					<div class="text-center mt-2">
+
+					    <small class="text-muted">
+					        <i class="bi bi-geo-alt-fill"></i>
+					        <span th:text="${m.sanThiDau.tenSan}">
+					            Sân vận động
+					        </span>
+					    </small>
+
+					</div>
+
+                </div>
+
+                <!-- Đội B -->
+                <div class="col-4 fw-bold fs-5"
+                     th:text="${m.doiB.tenDoi}">
+                    Đội B
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="col-2 text-end">
+
+                    <span th:if="${m.trangThaiTran == 'PENDING'}"
+                          class="badge bg-light text-dark border">
+                        Chưa đấu
+                    </span>
+
+                    <span th:if="${m.trangThaiTran == 'PLAYING'}"
+                          class="badge bg-danger">
+                        LIVE
+                    </span>
+
+                    <span th:if="${m.trangThaiTran == 'FINISHED'}"
+                          class="badge bg-success">
+                        FT
+                    </span>
+
+                </div>
+
+            </div>
+
+            <!-- Action -->
+            <div th:if="${currentRole == 'ROLE_BTC' || currentRole == 'ROLE_TT'}"
+                 class="border-top mt-3 pt-3 d-flex justify-content-end">
+
+                <div class="btn-group">
+
+                    <a class="btn btn-outline-success btn-sm"
+                       th:href="@{/match/result/edit/{id}(id=${m.maTranDau})}">
+                        <i class="bi bi-scoreboard me-1"></i>
+                        Tỷ số
+                    </a>
+
+                    <a th:if="${currentRole == 'ROLE_BTC'}"
+                       class="btn btn-outline-primary btn-sm"
+                       th:href="@{/match/assign(maTranDau=${m.maTranDau})}">
+                        <i class="bi bi-person-check me-1"></i>
+                        Phân công
+                    </a>
+
+                    <a th:if="${currentRole == 'ROLE_BTC'}"
+                       class="btn btn-outline-warning btn-sm"
+                       th:href="@{/match/edit/{id}(id=${m.maTranDau})}">
+                        Sửa
+                    </a>
+
+					<form th:if="${currentRole == 'ROLE_BTC'}"
+					      th:action="@{/match/delete/{id}(id=${m.maTranDau})}"
+					      method="post"
+					      style="display:inline;"
+					      onsubmit="return confirm('Bạn có chắc chắn muốn xóa trận đấu này?')">
+
+					    <button type="submit"
+					            class="btn btn-outline-danger btn-sm">
+
+					        <i class="bi bi-trash"></i>
+					        Xóa
+
+					    </button>
+
+					</form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div th:if="${matches == null || matches.isEmpty()}"
+             class="text-center text-muted py-5">
+
+            Chưa có trận đấu nào.
+
+        </div>
+
+    </div>
+
+</div>
+
+</th:block>
+</html>

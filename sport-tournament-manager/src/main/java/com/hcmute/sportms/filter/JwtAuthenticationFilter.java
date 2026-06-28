@@ -4,6 +4,7 @@ import com.hcmute.sportms.utils.JwtUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,42 +22,84 @@ import java.util.Collections;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
+	
     private final JwtUtils jwtUtils;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
-        
+
+        String token = null;
+
+        // ======================
+        // 1. Đọc từ Authorization Header (API)
+        // ======================
         String authHeader = request.getHeader("Authorization");
-        
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            try {
-                // Giải mã Token
-                Claims claims = jwtUtils.parseToken(token);
-                String username = claims.getSubject();
-                String role = claims.get("role", String.class);
-                
-                // Nếu Token hợp lệ, tạo chứng nhận an ninh cho Request này
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    
-                    // Nạp role vào danh sách Quyền của Spring Security
-                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority(role);
-                    
-                    // Nhét toàn bộ Claims vào phần Credentials để Aspect phía sau dùng lại (đỡ phải parse JWT 2 lần)
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            username, claims, Collections.singletonList(authority)
-                    );
-                    
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+            token = authHeader.substring(7);
+        }
+
+        // ======================
+        // 2. Nếu không có thì đọc từ Cookie (Web)
+        // ======================
+        if (token == null && request.getCookies() != null) {
+
+            for (Cookie cookie : request.getCookies()) {
+
+                if ("jwt_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
                 }
-            } catch (Exception e) {
-                log.warn("JWT Filter - Token không hợp lệ hoặc đã hết hạn: {}", e.getMessage());
+
             }
         }
-        
-        // Cho phép Request đi tiếp tới Controller
+
+        System.out.println("===== JWT FILTER =====");
+        System.out.println("URI = " + request.getRequestURI());
+        System.out.println("TOKEN = " + token);
+        System.out.println("--------------------------------");
+        System.out.println(request.getMethod() + " " + request.getRequestURI());
+
+        if (token != null) {
+
+            try {
+
+                Claims claims = jwtUtils.parseToken(token);
+
+                String username = claims.getSubject();
+                String role = claims.get("role", String.class);
+                role = role.toUpperCase();
+                System.out.println("USERNAME = " + username);
+                System.out.println("ROLE = " + role);
+
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    username,
+                                    claims,
+                                    Collections.singletonList(
+                                            new SimpleGrantedAuthority(role))
+                            );
+
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(authentication);
+
+                    System.out.println("SET AUTH SUCCESS");
+                }
+
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext(); // PHẢI XÓA khi token không hợp lệ
+                log.error("Authentication failed: {}", e.getMessage());
+            }
+        }
+
         filterChain.doFilter(request, response);
+
+        System.out.println("DONE " + request.getRequestURI());
+        return;
     }
 }

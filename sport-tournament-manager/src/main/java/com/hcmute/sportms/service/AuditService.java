@@ -1,14 +1,18 @@
 package com.hcmute.sportms.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hcmute.sportms.dto.response.AuditLogResponse;
+import com.hcmute.sportms.entity.AuditLog;
+import com.hcmute.sportms.repository.AuditLogRepository;
 import com.hcmute.sportms.repository.AuditRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -20,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class AuditService {
     private final AuditRepository auditRepository;
+    private final AuditLogRepository auditLogRepository;
     private final ObjectMapper objectMapper;
     @Transactional(readOnly = true)
     public List<AuditLogResponse> getParsedAuditLogs() {
@@ -58,5 +63,43 @@ public class AuditService {
             log.warn("Không thể parse JSON Audit tại ID: {}. Dữ liệu thô: {}", auditId, clobData);
             return null;
         }
+    }
+
+    public List<AuditLog> getLatestLogs() {
+        return auditLogRepository.findTop50ByOrderByActionTimeDesc();
+    }
+
+    public Map<String, Long> getActionStats() {
+        return auditLogRepository.countByActionType()
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> (String) r[0],
+                        r -> ((Number) r[1]).longValue()
+                ));
+    }
+
+    public Map<String, Long> getObjectStats() {
+        return auditLogRepository.countByObjectName()
+                .stream()
+                .collect(Collectors.toMap(
+                        r -> (String) r[0],
+                        r -> ((Number) r[1]).longValue()
+                ));
+    }
+
+    public Map<String, Long> getTimelineStats() {
+        Map<String, Long> result = new LinkedHashMap<>();
+        for (Object[] row : auditLogRepository.countByHour()) {
+            result.put(String.valueOf(row[0]), ((Number) row[1]).longValue());
+        }
+        return result;
+    }
+
+    private Map<String, Long> toMap(List<Object[]> rows) {
+        Map<String, Long> map = new LinkedHashMap<>();
+        for (Object[] r : rows) {
+            map.put(String.valueOf(r[0]), ((Number) r[1]).longValue());
+        }
+        return map;
     }
 }

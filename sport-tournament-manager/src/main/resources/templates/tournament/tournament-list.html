@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin-layout :: admin-layout(~{::content})}">
+
+<th:block th:fragment="content">
+    <div class="container my-5">
+
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-uppercase m-0 page-title">GIẢI ĐẤU</h2>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bundesliga align-middle">
+                <thead>
+                <tr>
+                    <th style="width: 8%;">Mã</th>
+                    <th style="width: 27%;">Tên giải đấu</th>
+                    <th style="width: 10%;" class="text-center">Năm</th>
+                    <th style="width: 15%;" class="text-center">Ngày bắt đầu</th>
+                    <th style="width: 15%;" class="text-center">Ngày kết thúc</th>
+                    <th class="text-center text-nowrap">Trạng thái</th>
+                    <th class="text-end text-nowrap" style="padding-right: 24px;">Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="t : ${list}">
+                    <td class="text-muted" th:text="${t.maGiai}">1</td>
+                    <td><span class="fw-bold text-dark" th:text="${t.tenGiai}">V-League 1</span></td>
+                    <td class="text-center text-secondary" th:text="${t.namToChuc}">2026</td>
+                    <td class="text-center text-secondary" th:text="${t.ngayBatDau}">2026-01-15</td>
+                    <td class="text-center text-secondary" th:text="${t.ngayKetThuc}">2026-08-30</td>
+
+                    <td class="text-center">
+                        <span th:if="${t.trangThai == 'Active' || t.trangThai == 'Ongoing' || t.trangThai == 'PLAYING'}"
+                              class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                            Đang diễn ra
+                        </span>
+                        <span th:if="${t.trangThai == 'REGISTRATION'}"
+                              class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                            Đang đăng ký
+                        </span>
+                        <span th:if="${t.trangThai == 'FINISHED'}"
+                              class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                            Đã kết thúc
+                        </span>
+                    </td>
+
+                    <td class="text-end text-nowrap" style="padding-right: 24px;">
+					    <div class="btn-group gap-1">
+                            <a class="btn btn-outline-primary btn-sm rounded"
+					           th:href="@{/tournament/detail/{maGiai}(maGiai=${t.maGiai})}">
+					            Chi tiết
+					        </a>
+                            
+                            <a th:if="${currentRole == 'ROLE_BTC'}" 
+                               class="btn btn-outline-warning btn-sm rounded"
+					           th:href="@{/tournament/edit/{maGiai}(maGiai=${t.maGiai})}">
+					            Sửa
+					        </a>
+							<form th:if="${currentRole == 'ROLE_BTC'}"
+							      th:action="@{/tournament/delete/{maGiai}(maGiai=${t.maGiai})}"
+							      method="post"
+							      style="display:inline;">
+
+							    <button type="submit"
+							            class="btn btn-outline-danger btn-sm rounded"
+							            onclick="return confirm('Bạn có chắc chắn muốn xóa giải đấu này?')">
+
+							        Xóa
+							    </button>
+
+							</form>
+					    </div>
+					</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${currentRole == 'ROLE_BTC'}" class="d-flex justify-content-end mt-4">
+            <a class="btn btn-dark px-4 py-2 fw-semibold shadow-sm" th:href="@{/tournament/add}">
+                <i class="bi bi-plus-lg me-2"></i> Thêm giải đấu
+            </a>
+        </div>
+
+    </div>
+</th:block>
+</html>
