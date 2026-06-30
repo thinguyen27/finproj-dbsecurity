@@ -26,8 +26,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
             	    // Static resources
             	    .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/assets/**").permitAll()
-            	    .requestMatchers("/login", "/register", "/forgot-password", "/reset-password", "/", "/index", "/home").permitAll()
-                    .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
+            	    .requestMatchers("/login", "/signup", "/forgot-password", "/", "/index", "/home").permitAll()
+            	    .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
             	    
             	    // 1. Phân hệ MATCH
             	    .requestMatchers("/match/my-matches").hasAuthority("ROLE_TT") 
