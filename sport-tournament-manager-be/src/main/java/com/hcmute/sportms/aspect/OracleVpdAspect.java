@@ -8,6 +8,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
@@ -21,28 +22,37 @@ public class OracleVpdAspect {
     @Around("@annotation(org.springframework.transaction.annotation.Transactional)")
     public Object manageVpdContext(ProceedingJoinPoint joinPoint) throws Throwable {
         boolean isContextSet = false;
-
-        // 1. Lấy thông tin chứng nhận an ninh từ Spring Security
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
         try {
-            // 2. Nạp VPD CONTEXT nếu user đã đăng nhập hợp lệ
-            if (auth != null && auth.isAuthenticated() && auth.getCredentials() instanceof Claims claims) {
+            // 1. Nạp VPD CONTEXT nếu user đã đăng nhập
+            if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
                 String currentUsername = auth.getName();
-                String currentRole = claims.get("role", String.class);
-                String currentTeamId = claims.get("teamId", String.class);
+                
+                // FIX LỖI 1: Lấy Role trực tiếp từ Authorities (Luôn đảm bảo IN HOA chuẩn xác)
+                String currentRole = auth.getAuthorities().stream()
+                        .findFirst()
+                        .map(GrantedAuthority::getAuthority)
+                        .orElse("");
 
+                // 2. Lấy TeamId từ Claims JWT
+                String currentTeamId = null;
+                if (auth.getCredentials() instanceof Claims claims) {
+                    currentTeamId = claims.get("teamId", String.class);
+                }
+
+                // 3. Gắn Context xuống Oracle
                 String sqlInit = "CALL SEC_ADMIN.PKG_SPORT_CONTEXT.INITIALIZE_SESSION(?, ?, ?)";
                 jdbcTemplate.update(sqlInit, currentUsername, currentRole, currentTeamId);
                 isContextSet = true;
-                log.debug("VPD Context INITIALIZED for User: {} - Role: {} - Team: {}", currentUsername, currentRole, currentTeamId);
+                log.debug("VPD INITIALIZED: User={} | Role={} | Team={}", currentUsername, currentRole, currentTeamId);
             }
 
-            // 3. THỰC THI LOGIC NGHIỆP VỤ (Hàm gọi xuống DB)
+            // 4. THỰC THI LOGIC NGHIỆP VỤ 
             return joinPoint.proceed();
 
         } finally {
-            // 4. XÓA VPD CONTEXT (Luôn luôn chạy để tránh rò rỉ dữ liệu)
+            // 5. DỌN DẸP BẢO MẬT
             if (isContextSet) {
                 jdbcTemplate.update("CALL SEC_ADMIN.PKG_SPORT_CONTEXT.CLEAR_SESSION()");
                 log.debug("VPD Context CLEARED.");

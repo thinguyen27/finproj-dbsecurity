@@ -24,7 +24,8 @@
                     <th style="width: 10%;" class="text-nowrap">Số điện thoại</th>
                     <th style="width: 13%;" class="text-nowrap">Email</th>
                     <th style="width: 10%;">Sức khỏe</th>
-                    <th th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == currentTeam.maDoi)}" 
+                    
+                    <th th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && currentTeamId == currentTeam.maDoi)}" 
                         class="text-end text-nowrap" style="padding-right: 24px;">Thao tác</th>
                 </tr>
                 </thead>
@@ -79,7 +80,7 @@
                         </span>
                     </td>
 
-                    <td th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == currentTeam.maDoi)}" 
+                    <td th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && currentTeamId == currentTeam.maDoi)}" 
                         class="text-end text-nowrap" style="padding-right: 24px;">
                         <div class="btn-group gap-1">
                             <a class="btn btn-outline-warning btn-sm rounded" th:href="@{/team/member/edit/{id}(id=${tv.maThanhVien})}">Sửa</a>
@@ -98,7 +99,8 @@
             <a href="/team/list" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
                 <i class="bi bi-arrow-left me-2"></i>Quay lại danh sách đội
             </a>
-            <a th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == currentTeam.maDoi)}"
+            
+            <a th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && currentTeamId == currentTeam.maDoi)}"
                th:href="@{/team/member/add(maDoi=${currentTeam.maDoi})}" class="btn btn-dark px-4 py-2 fw-semibold shadow-sm">
                 <i class="bi bi-plus-lg me-2"></i>Thêm thành viên
             </a>

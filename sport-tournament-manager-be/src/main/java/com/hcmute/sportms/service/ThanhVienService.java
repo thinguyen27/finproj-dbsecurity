@@ -7,11 +7,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ThanhVienService {
 
     private final ThanhVienDoiRepository thanhVienRepository;
@@ -47,8 +49,15 @@ public class ThanhVienService {
         return thanhVienRepository.save(vdv);
     }
     
-    @Transactional(readOnly = true) // Aspect sẽ nạp Context tại đây
+    @Transactional(readOnly = true)
     public List<ThanhVienDoi> layDanhSachThanhVienCuaDoi(String maDoi) {
-        return thanhVienRepository.findByMaDoi(maDoi);
+        List<ThanhVienDoi> list = thanhVienRepository.findByMaDoi(maDoi);
+        
+        // Dùng dấu phân cách để dễ nhìn trong Console
+        log.info("========================================");
+        log.info("DEBUG: TÌM THẤY {} VẬN ĐỘNG VIÊN CHO ĐỘI {}", list.size(), maDoi);
+        log.info("========================================");
+        
+        return list;
     }
 }
