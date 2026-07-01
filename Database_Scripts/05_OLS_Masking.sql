@@ -1,38 +1,253 @@
--- Kết nối bằng tài khoản quản trị an ninh để cấu hình chính sách OLS và Data Redaction
-CONN lbacsys/lbacsys;
+-- Thêm cột OLS
+ALTER TABLE SPORTS_OWNER.AUDIT_LOG
+ADD OLS_LABEL NUMBER;
+ALTER TABLE AUDIT_LOG
+ADD TeamCode VARCHAR2(20);
 
--- XÓA OLS POLICY CŨ (nếu tồn tại)
+-- Sửa VPD
+CREATE OR REPLACE FUNCTION
+SEC_ADMIN.FN_VPD_AUDIT
+(
+    p_schema VARCHAR2,
+    p_object VARCHAR2
+)
+RETURN VARCHAR2
+AS
+
+v_role VARCHAR2(20);
+v_team VARCHAR2(20);
+
 BEGIN
-    LBAC_POLICY_ADMIN.REMOVE_TABLE_POLICY(
-        policy_name => 'SPORT_POLICY',
-        schema_name => 'SPORTS_OWNER',
-        table_name  => 'THANH_VIEN_DOI'
-    );
-EXCEPTION
-    WHEN OTHERS THEN NULL;
+
+v_role:=SYS_CONTEXT('SPORT_CTX','ROLE');
+v_team:=SYS_CONTEXT('SPORT_CTX','TEAM_ID');
+
+IF v_role='ROLE_BTC' THEN
+
+    RETURN '1=1';
+
+ELSIF v_role='ROLE_TD' THEN
+
+    RETURN 'TeamCode='''||v_team||'''';
+
+ELSE
+
+    RETURN '1=1';
+
+END IF;
+
 END;
 /
 
+
+-- Sửa Trigger Audit
+-- TRG_AUDIT_THANH_VIEN
+CREATE OR REPLACE TRIGGER TRG_AUDIT_THANH_VIEN
+AFTER INSERT OR UPDATE OR DELETE ON SPORTS_OWNER.THANH_VIEN_DOI
+FOR EACH ROW
+DECLARE
+    v_action   VARCHAR2(20);
+    v_old_json CLOB := NULL;
+    v_new_json CLOB := NULL;
+    v_user     VARCHAR2(50);
+    v_ip       VARCHAR2(100);
 BEGIN
-    SA_SYSDBA.DROP_POLICY('SPORT_POLICY');
-EXCEPTION
-    WHEN OTHERS THEN NULL;
+    v_user := NVL(SYS_CONTEXT('SPORT_CTX', 'USERNAME'),
+                  SYS_CONTEXT('USERENV', 'SESSION_USER'));
+
+    v_ip := SYS_CONTEXT('USERENV', 'IP_ADDRESS');
+
+    IF INSERTING THEN
+        v_action := 'INSERT';
+
+        v_new_json := JSON_OBJECT(
+            'MaThanhVien'   VALUE :NEW.MaThanhVien,
+            'MaDoi'         VALUE :NEW.MaDoi,
+            'TenThanhVien'  VALUE :NEW.TenThanhVien,
+            'LoaiThanhVien' VALUE :NEW.LoaiThanhVien
+        );
+
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG
+        (
+            Username,
+            ActionType,
+            ObjectName,
+            RecordID,
+            OldValue,
+            NewValue,
+            ClientIP,
+            TeamCode
+        )
+        VALUES
+        (
+            v_user,
+            v_action,
+            'THANH_VIEN_DOI',
+            :NEW.MaThanhVien,
+            NULL,
+            v_new_json,
+            v_ip,
+            :NEW.MaDoi
+        );
+
+    ELSIF UPDATING THEN
+
+        v_action := 'UPDATE';
+
+        v_old_json := JSON_OBJECT(
+            'MaThanhVien'   VALUE :OLD.MaThanhVien,
+            'MaDoi'         VALUE :OLD.MaDoi,
+            'TenThanhVien'  VALUE :OLD.TenThanhVien,
+            'LoaiThanhVien' VALUE :OLD.LoaiThanhVien
+        );
+
+        v_new_json := JSON_OBJECT(
+            'MaThanhVien'   VALUE :NEW.MaThanhVien,
+            'MaDoi'         VALUE :NEW.MaDoi,
+            'TenThanhVien'  VALUE :NEW.TenThanhVien,
+            'LoaiThanhVien' VALUE :NEW.LoaiThanhVien
+        );
+
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG
+        (
+            Username,
+            ActionType,
+            ObjectName,
+            RecordID,
+            OldValue,
+            NewValue,
+            ClientIP,
+            TeamCode
+        )
+        VALUES
+        (
+            v_user,
+            v_action,
+            'THANH_VIEN_DOI',
+            :NEW.MaThanhVien,
+            v_old_json,
+            v_new_json,
+            v_ip,
+            :NEW.MaDoi
+        );
+
+    ELSIF DELETING THEN
+
+        v_action := 'DELETE';
+
+        v_old_json := JSON_OBJECT(
+            'MaThanhVien'   VALUE :OLD.MaThanhVien,
+            'MaDoi'         VALUE :OLD.MaDoi,
+            'TenThanhVien'  VALUE :OLD.TenThanhVien,
+            'LoaiThanhVien' VALUE :OLD.LoaiThanhVien
+        );
+
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG
+        (
+            Username,
+            ActionType,
+            ObjectName,
+            RecordID,
+            OldValue,
+            NewValue,
+            ClientIP,
+            TeamCode
+        )
+        VALUES
+        (
+            v_user,
+            v_action,
+            'THANH_VIEN_DOI',
+            :OLD.MaThanhVien,
+            v_old_json,
+            NULL,
+            v_ip,
+            :OLD.MaDoi
+        );
+
+    END IF;
+END;
+/
+-- TRG_AUDIT_TRAN_DAU
+CREATE OR REPLACE TRIGGER TRG_AUDIT_TRAN_DAU
+AFTER UPDATE ON SPORTS_OWNER.TRAN_DAU
+FOR EACH ROW
+DECLARE
+    v_old_json CLOB := NULL;
+    v_new_json CLOB := NULL;
+    v_user     VARCHAR2(50);
+    v_ip       VARCHAR2(100);
+BEGIN
+
+    IF :OLD.TySoDoiA <> :NEW.TySoDoiA
+    OR :OLD.TySoDoiB <> :NEW.TySoDoiB
+    OR :OLD.TheVangDoiA <> :NEW.TheVangDoiA
+    OR :OLD.TheVangDoiB <> :NEW.TheVangDoiB
+    OR :OLD.TheDoDoiA <> :NEW.TheDoDoiA
+    OR :OLD.TheDoDoiB <> :NEW.TheDoDoiB
+    OR :OLD.TrangThaiTran <> :NEW.TrangThaiTran
+    OR :OLD.KetQuaStatus <> :NEW.KetQuaStatus THEN
+
+        v_user := NVL(
+            SYS_CONTEXT('SPORT_CTX','USERNAME'),
+            SYS_CONTEXT('USERENV','SESSION_USER')
+        );
+
+        v_ip := SYS_CONTEXT('USERENV','IP_ADDRESS');
+
+        v_old_json := JSON_OBJECT(
+            'TySoDoiA' VALUE :OLD.TySoDoiA,
+            'TySoDoiB' VALUE :OLD.TySoDoiB,
+            'TheVangDoiA' VALUE :OLD.TheVangDoiA,
+            'TheVangDoiB' VALUE :OLD.TheVangDoiB,
+            'TheDoDoiA' VALUE :OLD.TheDoDoiA,
+            'TheDoDoiB' VALUE :OLD.TheDoDoiB,
+            'TrangThaiTran' VALUE :OLD.TrangThaiTran,
+            'KetQuaStatus' VALUE :OLD.KetQuaStatus
+        );
+
+        v_new_json := JSON_OBJECT(
+            'TySoDoiA' VALUE :NEW.TySoDoiA,
+            'TySoDoiB' VALUE :NEW.TySoDoiB,
+            'TheVangDoiA' VALUE :NEW.TheVangDoiA,
+            'TheVangDoiB' VALUE :NEW.TheVangDoiB,
+            'TheDoDoiA' VALUE :NEW.TheDoDoiA,
+            'TheDoDoiB' VALUE :NEW.TheDoDoiB,
+            'TrangThaiTran' VALUE :NEW.TrangThaiTran,
+            'KetQuaStatus' VALUE :NEW.KetQuaStatus
+        );
+
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG
+        (
+            Username,
+            ActionType,
+            ObjectName,
+            RecordID,
+            OldValue,
+            NewValue,
+            ClientIP,
+            TeamCode
+        )
+        VALUES
+        (
+            v_user,
+            'UPDATE',
+            'TRAN_DAU',
+            :NEW.MaTranDau,
+            v_old_json,
+            v_new_json,
+            v_ip,
+            'MATCH'
+        );
+
+    END IF;
+
 END;
 /
 
--- XÓA REDACTION POLICY CŨ (nếu tồn tại)
-BEGIN
-    DBMS_REDACT.DROP_POLICY(
-        object_schema => 'SPORTS_OWNER',
-        object_name   => 'THANH_VIEN_DOI',
-        policy_name   => 'REDACT_MEMBER'
-    );
-EXCEPTION
-    WHEN OTHERS THEN NULL;
-END;
-/
+-- Tạo Policy
+CONN LBACSYS/LBACSYS;
 
--- Tạo policy cho OLS
 BEGIN
     SA_SYSDBA.CREATE_POLICY(
         policy_name => 'SPORT_POLICY',
@@ -41,321 +256,325 @@ BEGIN
 END;
 /
 
--- Gán quyền cho sec_admin để tạo policy OLS và Data Redaction
 EXEC SA_SYSDBA.ENABLE_POLICY('SPORT_POLICY');
+
 GRANT SPORT_POLICY_DBA TO SEC_ADMIN;
 
--- dùng sec_admin để tạo level, group, label và áp policy vào bảng THANH_VIEN_DOI
+-- Tạo Levels
 CONN SEC_ADMIN/SEC_ADMIN;
--- Tạo Security Levels
+
 BEGIN
 
 SA_COMPONENTS.CREATE_LEVEL(
 'SPORT_POLICY',
 100,
 'PUBLIC',
-'Cong khai'
+'Public'
 );
 
 SA_COMPONENTS.CREATE_LEVEL(
 'SPORT_POLICY',
 200,
 'INTERNAL',
-'Noi bo'
+'Internal'
 );
 
 SA_COMPONENTS.CREATE_LEVEL(
 'SPORT_POLICY',
 300,
 'CONFIDENTIAL',
-'Nhay cam'
+'Confidential'
 );
 
 SA_COMPONENTS.CREATE_LEVEL(
 'SPORT_POLICY',
 400,
 'SECRET',
-'Tuyet mat'
+'Secret'
 );
 
 END;
 /
 
--- Ta không tạo Compartments vì nó sẽ dư và xung đột với VPD
--- Tạo group 
+-- Compartments
+
+BEGIN
+
+SA_COMPONENTS.CREATE_COMPARTMENT(
+'SPORT_POLICY',
+10,
+'MATCH',
+'Match'
+);
+
+SA_COMPONENTS.CREATE_COMPARTMENT(
+'SPORT_POLICY',
+20,
+'TEAM',
+'Team'
+);
+
+SA_COMPONENTS.CREATE_COMPARTMENT(
+'SPORT_POLICY',
+30,
+'MEMBER',
+'Member'
+);
+
+SA_COMPONENTS.CREATE_COMPARTMENT(
+'SPORT_POLICY',
+40,
+'SECURITY',
+'Security'
+);
+
+END;
+/
+
+-- Tạo group
 BEGIN
 
 SA_COMPONENTS.CREATE_GROUP(
 'SPORT_POLICY',
 1,
-'BTC',
-'Ban To Chuc'
-);
-
-SA_COMPONENTS.CREATE_GROUP(
-'SPORT_POLICY',
-2,
-'TD',
-'Truong Doan'
-);
-
-SA_COMPONENTS.CREATE_GROUP(
-'SPORT_POLICY',
-3,
-'TT',
-'Trong Tai'
-);
-
-SA_COMPONENTS.CREATE_GROUP(
-'SPORT_POLICY',
-4,
-'GS',
-'Giam Sat'
+'SYSTEM',
+'System'
 );
 
 END;
 /
 
-
--- 5. Labels
--- BTC
+-- Labels
+-- mức public
 BEGIN
+
 SA_LABEL_ADMIN.CREATE_LABEL(
 'SPORT_POLICY',
-4001,
-'SECRET::BTC'
+1001,
+'PUBLIC:MATCH:SYSTEM'
 );
+
+SA_LABEL_ADMIN.CREATE_LABEL(
+'SPORT_POLICY',
+1002,
+'PUBLIC:TEAM:SYSTEM'
+);
+
+END;
+/
+
+-- mức internal
+BEGIN
+
+SA_LABEL_ADMIN.CREATE_LABEL(
+'SPORT_POLICY',
+2001,
+'INTERNAL:MATCH:SYSTEM'
+);
+
+SA_LABEL_ADMIN.CREATE_LABEL(
+'SPORT_POLICY',
+2002,
+'INTERNAL:TEAM:SYSTEM'
+);
+
+END;
+/
+
+-- mức confidential
+BEGIN
+
+SA_LABEL_ADMIN.CREATE_LABEL(
+'SPORT_POLICY',
+3001,
+'CONFIDENTIAL:MEMBER:SYSTEM'
+);
+
+END;
+/
+
+-- mức secret
+BEGIN
+    SA_LABEL_ADMIN.CREATE_LABEL(
+        'SPORT_POLICY',
+        4003,
+        'SECRET:MEMBER,SECURITY:SYSTEM'
+    );
+END;
+/
+
+-- Apply Policy
+
+BEGIN
+
+LBAC_POLICY_ADMIN.APPLY_TABLE_POLICY(
+
+policy_name  => 'SPORT_POLICY',
+
+schema_name  => 'SPORTS_OWNER',
+
+table_name   => 'AUDIT_LOG',
+
+table_options=>'READ_CONTROL'
+
+);
+
+END;
+/
+
+-- Tạo Trigger để tự động gán OLS Label cho các bản ghi Audit Log dựa trên ObjectName
+CONN SPORTS_OWNER/CNTT2026!;
+
+CREATE OR REPLACE TRIGGER TRG_AUDIT_LOG_OLS
+
+BEFORE INSERT ON AUDIT_LOG
+
+FOR EACH ROW
+
+BEGIN
+
+CASE :NEW.ObjectName
+
+WHEN 'TRAN_DAU' THEN
+
+    :NEW.OLS_LABEL :=
+
+        CHAR_TO_LABEL(
+
+            'SPORT_POLICY',
+
+            'INTERNAL:MATCH:SYSTEM'
+
+        );
+
+WHEN 'DOI_THI_DAU' THEN
+
+    :NEW.OLS_LABEL :=
+
+        CHAR_TO_LABEL(
+
+            'SPORT_POLICY',
+
+            'INTERNAL:TEAM:SYSTEM'
+
+        );
+
+WHEN 'PHAN_CONG_TRAN_DAU' THEN
+
+    :NEW.OLS_LABEL :=
+
+        CHAR_TO_LABEL(
+            'SPORT_POLICY',
+
+            'INTERNAL:MATCH:SYSTEM'
+
+        );
+
+WHEN 'THANH_VIEN_DOI' THEN
+
+    :NEW.OLS_LABEL :=
+
+        CHAR_TO_LABEL(
+
+            'SPORT_POLICY',
+
+            'CONFIDENTIAL:MEMBER:SYSTEM'
+
+        );
+
+WHEN 'USER_INFO' THEN
+
+    :NEW.OLS_LABEL :=
+
+        CHAR_TO_LABEL(
+
+            'SPORT_POLICY',
+
+            'SECRET:MEMBER:SYSTEM'
+
+        );
+
+ELSE
+
+    :NEW.OLS_LABEL :=
+
+        CHAR_TO_LABEL(
+
+            'SPORT_POLICY',
+
+            'SECRET:SECURITY:SYSTEM'
+
+        );
+
+END CASE;
+
+END;
+/
+
+-- Clearance
+
+-- BTC
+BEGIN
+    SA_USER_ADMIN.SET_USER_LABELS(
+        policy_name=>'SPORT_POLICY',
+        user_name=>'BTC_APP',
+        max_read_label=>'SECRET:MEMBER,SECURITY:SYSTEM',
+        max_write_label=>'SECRET:MEMBER,SECURITY:SYSTEM'
+    );
 END;
 /
 
 -- Trưởng đoàn
 BEGIN
-SA_LABEL_ADMIN.CREATE_LABEL(
-'SPORT_POLICY',
-3001,
-'CONFIDENTIAL::TD'
-);
-END;
-/
 
-BEGIN
-SA_LABEL_ADMIN.CREATE_LABEL(
-    'SPORT_POLICY',
-    3002,
-    'CONFIDENTIAL::TT'
-);
-END;
-/
+SA_USER_ADMIN.SET_USER_LABELS(
 
-BEGIN
-SA_LABEL_ADMIN.CREATE_LABEL(
-    'SPORT_POLICY',
-    3003,
-    'CONFIDENTIAL::GS'
+policy_name=>'SPORT_POLICY',
+
+user_name=>'TD_APP',
+
+max_read_label=>'CONFIDENTIAL:MEMBER:SYSTEM',
+
+max_write_label=>'CONFIDENTIAL:MEMBER:SYSTEM'
+
 );
+
 END;
 /
 
 -- Trọng tài
 BEGIN
-SA_LABEL_ADMIN.CREATE_LABEL(
-'SPORT_POLICY',
-2001,
-'INTERNAL::TT'
-);
-END;
-/
 
+SA_USER_ADMIN.SET_USER_LABELS(
 
--- GS
-BEGIN
-SA_LABEL_ADMIN.CREATE_LABEL(
-'SPORT_POLICY',
-1001,
-'PUBLIC::GS'
-);
-END;
-/
+policy_name=>'SPORT_POLICY',
 
+user_name=>'TT_APP',
 
--- 6. Áp policy vào bảng VAN_DONG_VIEN
+max_read_label=>'INTERNAL:MATCH:SYSTEM',
 
-BEGIN
+max_write_label=>'INTERNAL:MATCH:SYSTEM'
 
-LBAC_POLICY_ADMIN.APPLY_TABLE_POLICY(
-    policy_name  => 'SPORT_POLICY',
-    schema_name  => 'SPORTS_OWNER',
-    table_name   => 'THANH_VIEN_DOI',
-    table_options=>'READ_CONTROL,WRITE_CONTROL'
 );
 
 END;
 /
 
--- Toàn bộ dữ liệu thành viên sẽ mang nhãn: CONFIDENTIAL::TD và VPD mới là thứ quyết định ai được xem đội nào.
-UPDATE SPORTS_OWNER.THANH_VIEN_DOI
-SET OLS_LABEL =
-    CHAR_TO_LABEL(
-        'SPORT_POLICY',
-        'CONFIDENTIAL::TD'
-    );
-
-COMMIT;
-
--- 8. Gán clearance cho user
--- Cho SPORTS_OWNER
-BEGIN
-SA_USER_ADMIN.SET_USER_PRIVS(
-    policy_name=>'SPORT_POLICY',
-    user_name=>'SPORTS_OWNER',
-    privileges=>'FULL'
-);
-END;
-/
-
-
--- Gán clearance cho BTC
+-- Giám sát
 BEGIN
 
 SA_USER_ADMIN.SET_USER_LABELS(
-    policy_name     => 'SPORT_POLICY',
-    user_name       => 'BTC_APP',
-    max_read_label  => 'SECRET::BTC',
-    max_write_label => 'SECRET::BTC'
+
+policy_name=>'SPORT_POLICY',
+
+user_name=>'GS_APP',
+
+max_read_label=>'INTERNAL:TEAM:SYSTEM',
+
+max_write_label=>'INTERNAL:TEAM:SYSTEM'
+
 );
 
-END;
-/
-
--- Trưởng đoàn
-BEGIN
-
-SA_USER_ADMIN.SET_USER_LABELS(
-    policy_name     => 'SPORT_POLICY',
-    user_name       => 'TD_APP',
-    max_read_label  => 'CONFIDENTIAL::TD',
-    max_write_label => 'CONFIDENTIAL::TD'
-);
-
-END;
-/
-
-
---  Trọng tài
-BEGIN
-
-SA_USER_ADMIN.SET_USER_LABELS(
-    policy_name     => 'SPORT_POLICY',
-    user_name       => 'TT_APP',
-    max_read_label  => 'CONFIDENTIAL::TT',
-    max_write_label => 'CONFIDENTIAL::TT'
-);
-
-END;
-/
-
--- GS
-BEGIN
-
-SA_USER_ADMIN.SET_USER_LABELS(
-    policy_name     => 'SPORT_POLICY',
-    user_name       => 'GS_APP',
-    max_read_label  => 'CONFIDENTIAL::GS',
-    max_write_label => 'CONFIDENTIAL::GS'
-);
-
-END;
-/
-
-
--- PHẦN II : DATA REDACTION
--- 1. CCCD
-BEGIN
-
-DBMS_REDACT.ADD_POLICY(
-    object_schema => 'SPORTS_OWNER',
-    object_name   => 'THANH_VIEN_DOI',
-    column_name   => 'CCCD',
-
-    policy_name   => 'REDACT_MEMBER',
-
-    function_type => DBMS_REDACT.FULL,
-
-    expression =>
-    q'[
-       SYS_CONTEXT('SPORT_CTX','ROLE')
-       IN ('ROLE_GS','ROLE_TT')
-    ]'
-);
-
-END;
-/
-
--- SDT
-BEGIN
-DBMS_REDACT.ALTER_POLICY(
-    object_schema => 'SPORTS_OWNER',
-    object_name   => 'THANH_VIEN_DOI',
-    policy_name   => 'REDACT_MEMBER',
-
-    action        => DBMS_REDACT.ADD_COLUMN,
-    column_name   => 'SoDienThoai',
-
-    function_type => DBMS_REDACT.FULL
-);
-END;
-/
-
-
--- Email
-BEGIN
-
-DBMS_REDACT.ALTER_POLICY(
-    object_schema => 'SPORTS_OWNER',
-    object_name   => 'THANH_VIEN_DOI',
-    policy_name   => 'REDACT_MEMBER',
-
-    action        => DBMS_REDACT.ADD_COLUMN,
-
-    column_name   => 'EmailThanhVien',
-
-    function_type => DBMS_REDACT.FULL
-);
-
-END;
-/
-
--- Thông tin sức khỏe
-BEGIN
-
-DBMS_REDACT.ALTER_POLICY(
-    object_schema => 'SPORTS_OWNER',
-    object_name   => 'THANH_VIEN_DOI',
-    policy_name   => 'REDACT_MEMBER',
-
-    action        => DBMS_REDACT.ADD_COLUMN,
-
-    column_name   => 'ThongTinSucKhoe',
-
-    function_type => DBMS_REDACT.FULL
-);
-
-END;
-/
-
--- Tạo trigger để gán nhãn OLS cho các bản ghi mới được thêm vào bảng THANH_VIEN_DOI
-CONN SPORTS_OWNER/CNTT2026!;
-CREATE OR REPLACE TRIGGER TRG_MEMBER_LABEL
-BEFORE INSERT ON SPORTS_OWNER.THANH_VIEN_DOI
-FOR EACH ROW
-BEGIN
-    IF :NEW.OLS_LABEL IS NULL THEN
-        :NEW.OLS_LABEL :=
-        CHAR_TO_LABEL(
-            'SPORT_POLICY',
-            'CONFIDENTIAL::TD'
-        );
-    END IF;
 END;
 /
 
