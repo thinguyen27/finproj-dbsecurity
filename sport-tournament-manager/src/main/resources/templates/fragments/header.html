@@ -57,9 +57,7 @@
 					<li th:if="${currentRole == 'ROLE_BTC'}" class="nav-item">
 					    <a class="nav-link fw-semibold text-danger text-nowrap px-2"
 					       href="/user">
-
 					        <i class="bi bi-people-fill me-1"></i>
-
 					        Quản lý Tài khoản
 					    </a>
 					</li>
@@ -67,9 +65,7 @@
 					<li th:if="${currentRole == 'ROLE_BTC'}" class="nav-item">
 					    <a class="nav-link fw-semibold text-warning text-nowrap px-2"
 					       href="/audit">
-
 					        <i class="bi bi-shield-check me-1"></i>
-
 					        Giám sát hệ thống
 					    </a>
 					</li>
@@ -84,35 +80,38 @@
 				           class="nav-link dropdown-toggle"
 				           href="#"
 				           data-bs-toggle="dropdown">
-
 				            <i class="bi bi-person-circle fs-4"></i>
-
 				        </a>
 
-				        <ul class="dropdown-menu dropdown-menu-end"
+				        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0"
 				            th:if="${currentUser != null}">
 
 				            <li>
-
-				                <span class="dropdown-item-text fw-bold"
+				                <span class="dropdown-item-text fw-bold text-primary"
 				                      th:text="${currentUser}">
 				                    admin
 				                </span>
-
 				            </li>
 
 				            <li><hr class="dropdown-divider"></li>
 
+                            <li>
+				                <a class="dropdown-item fw-semibold" href="/profile">
+				                    <i class="bi bi-person-vcard me-2 text-secondary"></i>Thông tin cá nhân
+				                </a>
+				            </li>
+
 				            <li>
-				                <a class="dropdown-item" href="/profile">
-				                    Thông tin cá nhân
+				                <a class="dropdown-item fw-semibold" href="/change-password">
+				                    <i class="bi bi-key-fill me-2 text-secondary"></i>Đổi mật khẩu
 				                </a>
 				            </li>
 
 							<li>
-							    <a class="dropdown-item"
-							       href="/api/auth/logout">
-							       Đăng xuất
+							    <a class="dropdown-item fw-semibold text-danger"
+							       href="/api/auth/logout" 
+							       onclick="localStorage.removeItem('sportms_token');">
+							       <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
 							    </a>
 							</li>
 
@@ -121,9 +120,7 @@
 				        <a th:if="${currentUser == null}"
 				           class="nav-link"
 				           th:href="@{/login}">
-
 				            <i class="bi bi-person-circle fs-4"></i>
-
 				        </a>
 
 				    </li>
@@ -135,16 +132,16 @@
 		</div>
 
 	</nav>
+    
 	<script>
 	    function logout() {
-			alert("Đã bấm logout");
 	        // 1. Xóa Token trong LocalStorage
-	        localStorage.removeItem("jwt_token");
+	        localStorage.removeItem("sportms_token"); 
 	        
-	        // 2. Xóa Token trong Cookie (Ép ngày hết hạn về quá khứ)
-	        document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+	        // 2. Xóa Token trong Cookie
+	        document.cookie = "sportms_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; 
 	        
-	        // 3. Đá văng về trang Login
+	        // 3. Gọi API Backend để dọn Session rồi tự động đá văng về trang Login
 			window.location.href = "/api/auth/logout";
 	    }
 	</script>

@@ -3,6 +3,7 @@ package com.hcmute.sportms.service;
 import com.hcmute.sportms.dto.request.CreateThanhVienRequest;
 import com.hcmute.sportms.entity.ThanhVienDoi;
 import com.hcmute.sportms.repository.ThanhVienDoiRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,39 +17,103 @@ public class ThanhVienService {
 
     private final ThanhVienDoiRepository thanhVienRepository;
 
-    // Lấy danh sách thành viên. 
-    // Nhờ VPD, hàm findAll() này sẽ CHỈ trả về dữ liệu của đội mà Trưởng đoàn đang quản lý.
+    /**
+     * Lấy toàn bộ thành viên.
+     * VPD sẽ tự lọc dữ liệu theo Context.
+     */
     @Transactional(readOnly = true)
     public List<ThanhVienDoi> layDanhSachThanhVien() {
         return thanhVienRepository.findAll();
     }
 
-    // Thêm mới thành viên
-    @Transactional
-    public ThanhVienDoi themMoiThanhVien(CreateThanhVienRequest request) {
-        ThanhVienDoi vdv = new ThanhVienDoi();
-        // Cấp mã ngẫu nhiên (hoặc bạn có thể tự viết logic tự tăng)
-        vdv.setMaThanhVien("VDV-" + UUID.randomUUID().toString().substring(0, 15)); 
-        vdv.setMaDoi(request.getMaDoi());
-        vdv.setTenThanhVien(request.getTenThanhVien());
-        vdv.setLoaiThanhVien(request.getLoaiThanhVien());
-        vdv.setNgaySinh(request.getNgaySinh());
-        vdv.setGioiTinh(request.getGioiTinh());
-        vdv.setSoAo(request.getSoAo());
-        vdv.setCccd(request.getCccd());
-        vdv.setSoDienThoai(request.getSoDienThoai());
-        vdv.setEmailThanhVien(request.getEmailThanhVien());
-        vdv.setThongTinSucKhoe(request.getThongTinSucKhoe());
-        
-        // Mặc định cho OLS Label (có thể để null cho CSDL tự trigger hoặc set mặc định)
-        vdv.setOlsLabel(100); // Ví dụ: 100 là mức PUBLIC
-
-        // Lưu xuống DB. Nếu maDoi không khớp với Context, CSDL sẽ tự văng lỗi.
-        return thanhVienRepository.save(vdv);
-    }
-    
-    @Transactional(readOnly = true) // Aspect sẽ nạp Context tại đây
+    /**
+     * Lấy danh sách thành viên của một đội.
+     */
+    @Transactional(readOnly = true)
     public List<ThanhVienDoi> layDanhSachThanhVienCuaDoi(String maDoi) {
         return thanhVienRepository.findByMaDoi(maDoi);
     }
+
+    /**
+     * Tìm thành viên theo mã.
+     */
+    @Transactional(readOnly = true)
+    public ThanhVienDoi findById(String maThanhVien) {
+
+        return thanhVienRepository.findById(maThanhVien)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Không tìm thấy thành viên: " + maThanhVien));
+    }
+
+    /**
+     * Thêm mới thành viên.
+     */
+    @Transactional
+    public ThanhVienDoi themMoiThanhVien(CreateThanhVienRequest request) {
+
+        ThanhVienDoi tv = new ThanhVienDoi();
+
+        String lastId = thanhVienRepository.findLastMemberId(request.getMaDoi());
+
+        int next = 1;
+
+        if (lastId != null) {
+            next = Integer.parseInt(lastId.substring(lastId.lastIndexOf("_") + 1)) + 1;
+        }
+
+        String ma = String.format("TV_%s_%02d", request.getMaDoi(), next);
+
+        tv.setMaThanhVien(ma);
+
+        tv.setMaDoi(request.getMaDoi());
+        tv.setTenThanhVien(request.getTenThanhVien());
+        tv.setLoaiThanhVien(request.getLoaiThanhVien());
+        tv.setNgaySinh(request.getNgaySinh());
+        tv.setGioiTinh(request.getGioiTinh());
+        tv.setSoAo(request.getSoAo());
+        tv.setCccd(request.getCccd());
+        tv.setSoDienThoai(request.getSoDienThoai());
+        tv.setEmailThanhVien(request.getEmailThanhVien());
+        tv.setThongTinSucKhoe(request.getThongTinSucKhoe());
+
+        // OLS Label mặc định
+        tv.setOlsLabel(100);
+
+        return thanhVienRepository.save(tv);
+    }
+
+    /**
+     * Cập nhật thành viên.
+     */
+    @Transactional
+    public ThanhVienDoi capNhatThanhVien(CreateThanhVienRequest request) {
+
+        ThanhVienDoi tv = findById(request.getMaThanhVien());
+
+        tv.setMaDoi(request.getMaDoi());
+        tv.setTenThanhVien(request.getTenThanhVien());
+        tv.setLoaiThanhVien(request.getLoaiThanhVien());
+        tv.setNgaySinh(request.getNgaySinh());
+        tv.setGioiTinh(request.getGioiTinh());
+        tv.setSoAo(request.getSoAo());
+        tv.setCccd(request.getCccd());
+        tv.setSoDienThoai(request.getSoDienThoai());
+        tv.setEmailThanhVien(request.getEmailThanhVien());
+        tv.setThongTinSucKhoe(request.getThongTinSucKhoe());
+
+        return thanhVienRepository.save(tv);
+    }
+
+    /**
+     * Xóa thành viên.
+     */
+    @Transactional
+    public void delete(String maThanhVien) {
+
+        ThanhVienDoi tv = findById(maThanhVien);
+
+        thanhVienRepository.delete(tv);
+    }
+
 }

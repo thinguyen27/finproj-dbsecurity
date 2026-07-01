@@ -13,7 +13,7 @@ public class CreateThanhVienRequest {
 
     @NotBlank(message = "Tên thành viên không được để trống")
     private String tenThanhVien;
-
+    private String maThanhVien;
     @NotBlank(message = "Loại thành viên không được để trống")
     @Pattern(regexp = "^(CAU_THU|HLV_TRUONG|HLV_PHO|BAC_SI)$", message = "Loại thành viên không hợp lệ")
     private String loaiThanhVien;

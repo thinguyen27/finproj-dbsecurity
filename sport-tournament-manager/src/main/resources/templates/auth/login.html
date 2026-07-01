@@ -11,7 +11,6 @@
 					<h1 class="fw-bold text-center">TÀI KHOẢN GIẢI ĐẤU THỂ THAO</h1>
 					<p class="text-center text-secondary">Đăng nhập để sử dụng hệ thống quản lý giải đấu thể thao.</p>
 
-
 					<div class="card shadow border-0 mt-4">
 						<div class="card-header bg-white border-0 p-0">
 							<ul class="nav nav-tabs nav-fill" id="myTab" role="tablist">
@@ -41,20 +40,21 @@
 											</a>
 										</div>
 										<button type="submit" class="btn btn-secondary w-100 mb-3">ĐĂNG NHẬP</button>
-
 									</form>
 								</div>
 
 								<div class="tab-pane fade" id="signup-pane" role="tabpanel">
-									<form method="post" th:action="@{/signup}">
-										<input class="form-control form-control-lg mb-3" type="email" name="email" placeholder="Email" required> 
-                                        <input class="form-control form-control-lg mb-3" type="password" name="password" placeholder="Mật khẩu" required>
-										<button class="btn btn-dark w-100 mb-3">ĐĂNG KÝ</button>
-									</form>
+								    <form method="post" th:action="@{/register}">
+								        <input class="form-control mb-3" type="text" name="username" placeholder="Tên đăng nhập *" required>
+								        <input class="form-control mb-3" type="password" name="password" placeholder="Mật khẩu *" required minlength="6">
+								        <input class="form-control mb-3" type="text" name="fullName" placeholder="Họ và tên *" required>
+								        <input class="form-control mb-3" type="email" name="email" placeholder="Email liên hệ *" required>
+								        <input class="form-control mb-4" type="text" name="phone" placeholder="Số điện thoại">
+								        <button type="submit" class="btn btn-primary w-100 mb-2 py-2 fw-bold">TẠO TÀI KHOẢN</button>
+								    </form>
 								</div>
 							</div>
 							<hr>
-
 						</div>
 					</div>
 				</div>

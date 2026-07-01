@@ -1,36 +1,36 @@
 package com.hcmute.sportms.service;
 
 import com.hcmute.sportms.dto.response.LoginResponse;
-
 import com.hcmute.sportms.exception.DatabaseSecurityException;
 import com.hcmute.sportms.repository.AuthRepository;
 import com.hcmute.sportms.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Import Transactional
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
-
+import java.util.UUID; // BỔ SUNG IMPORT NÀY ĐỂ TRÁNH LỖI
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    
     private final AuthRepository authRepository;
     private final JwtUtils jwtUtils; 
-    
-    // THÊM MỚI: Khai báo EmailService để Spring Boot tự động nhúng (Inject) vào
     private final EmailService emailService; 
 
     public LoginResponse authenticate(String username, String password) {
         Map<String, Object> result = authRepository.callLoginProcedure(username, password);
+        
         System.out.println("========== RESULT ==========");
         result.forEach((k, v) -> System.out.println(k + " = " + v));
         System.out.println("HASH FROM JDBC = " + authRepository.hashTest(password));
         System.out.println("============================");
+        
         log.info("Nội dung Map nhận được từ Oracle: {}", result.keySet());
-        // SỬA Ở ĐÂY: Đổi P_STATUS, P_ROLE, P_TEAM_ID thành chữ in thường
+        
         String status = (String) result.get("p_status"); 
         String role = (String) result.get("p_role");
         String teamId = (String) result.get("p_team_id");
@@ -47,12 +47,11 @@ public class AuthService {
             case "WRONG_PASSWORD" -> throw new DatabaseSecurityException("Sai tài khoản hoặc mật khẩu.");
             default -> throw new DatabaseSecurityException("Lỗi hệ thống: " + status);
         };
-        
     }
     
     @Transactional
     public void resetPasswordAndSendEmail(String email) {
-        // 1. Tạo mật khẩu ngẫu nhiên 8 ký tự (Đã sửa lại cú pháp chuẩn của Java)
+        // 1. Tạo mật khẩu ngẫu nhiên 8 ký tự
         String newPassword = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         
         // 2. Cập nhật xuống Oracle Database

@@ -1,81 +1,82 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{layout/admin-layout :: admin-layout(~{::content})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/admin-layout :: admin-layout(~{::content})}">
 
 <th:block th:fragment="content">
 
-    <div class="container my-5">
+	<div class="container my-5">
 
-        <div class="text-center mb-4">
-            <h2 class="fw-bold text-uppercase m-0 page-title">
-                DANH SÁCH SÂN VẬN ĐỘNG
-            </h2>
-        </div>
+		<div class="text-center mb-4">
+			<h2 class="fw-bold text-uppercase m-0 page-title">
+				DANH SÁCH SÂN VẬN ĐỘNG
+			</h2>
+		</div>
 
-        <div class="table-responsive">
-            <table class="table table-bundesliga align-middle">
-                <thead>
-                <tr>
-                    <th style="width: 10%;">Mã Sân</th>
-                    <th style="width: 30%;">Tên Sân Vận Động</th>
-                    <th style="width: 35%;">Địa chỉ</th>
-                    <th style="width: 15%;" class="text-center">Sức chứa</th>
-                    <th th:if="${currentRole == 'ROLE_BTC'}" class="text-end text-nowrap" style="padding-right: 24px;">Thao tác</th>
-                </tr>
-                </thead>
+		<div class="table-responsive">
+			<table class="table table-bundesliga align-middle">
+				<thead>
+					<tr>
+						<th style="width: 10%;">Mã Sân</th>
+						<th style="width: 30%;">Tên Sân Vận Động</th>
+						<th style="width: 35%;">Địa chỉ</th>
+						<th style="width: 15%;" class="text-center">Sức chứa</th>
+						<th th:if="${currentRole == 'ROLE_BTC'}" class="text-end text-nowrap"
+							style="padding-right: 24px;">Thao tác</th>
+					</tr>
+				</thead>
 
-                <tbody>
-                <tr th:each="san : ${stadiums}">
-                    <td class="text-muted" th:text="${san.maSan}">SAN001</td>
+				<tbody>
+					<tr th:each="san : ${stadiums}">
+						<td class="text-muted" th:text="${san.maSan}">SAN001</td>
 
-                    <td>
-                        <span class="fw-bold text-dark" th:text="${san.tenSan}">Veltins Arena</span>
-                    </td>
+						<td>
+							<span class="fw-bold text-dark" th:text="${san.tenSan}">Veltins Arena</span>
+						</td>
 
-                    <td class="text-secondary" th:text="${san.diaChi ?: '-'}">Gelsenkirchen, Đức</td>
+						<td class="text-secondary" th:text="${san.diaChi ?: '-'}">Gelsenkirchen, Đức</td>
 
-                    <td class="text-center fw-bold text-secondary" 
-                        th:text="${san.sucChua != null ? #numbers.formatInteger(san.sucChua, 3, 'POINT') : '-'}">62.271</td>
+						<td class="text-center fw-bold text-secondary"
+							th:text="${san.sucChua != null ? #numbers.formatInteger(san.sucChua, 3, 'POINT') : '-'}">
+							62.271</td>
 
-                    <td th:if="${currentRole == 'ROLE_BTC'}" class="text-end text-nowrap" style="padding-right: 24px;">
-                        <div class="btn-group gap-1">
-                            <a class="btn btn-outline-warning btn-sm rounded"
-                               th:href="@{/stadium/edit/{maSan}(maSan=${san.maSan})}">
-                                Sửa
-                            </a>
-<				<form th:action="@{/stadium/delete/{maSan}(maSan=${san.maSan})}"
-							      method="post"
-							      style="display:inline">
+						<td th:if="${currentRole == 'ROLE_BTC'}" class="text-end text-nowrap"
+							style="padding-right: 24px;">
+							<div class="btn-group gap-1">
+								<a class="btn btn-outline-warning btn-sm rounded"
+									th:href="@{/stadium/edit/{maSan}(maSan=${san.maSan})}">
+									Sửa
+								</a>
+								<form th:action="@{/stadium/delete/{maSan}(maSan=${san.maSan})}" method="post"
+									style="display:inline">
 
-							    <button type="submit"
-							            class="btn btn-outline-danger btn-sm rounded"
-							            onclick="return confirm('Bạn có chắc chắn muốn xóa sân vận động này không?')">
-							        Xóa
-							    </button>
+									<button type="submit" class="btn btn-outline-danger btn-sm rounded"
+										onclick="return confirm('Bạn có chắc chắn muốn xóa sân vận động này không?')">
+										Xóa
+									</button>
 
-							</form>
-                        </div>
-                    </td>
-                </tr>
+								</form>
+							</div>
+						</td>
+					</tr>
 
-                <tr th:if="${stadiums == null || stadiums.isEmpty()}">
-                    <td th:colspan="${currentRole == 'ROLE_BTC'} ? 5 : 4" class="text-center py-4 text-muted fw-semibold">
-                        Chưa có dữ liệu sân vận động nào trong hệ thống.
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+					<tr th:if="${stadiums == null || stadiums.isEmpty()}">
+						<td th:colspan="${currentRole == 'ROLE_BTC'} ? 5 : 4"
+							class="text-center py-4 text-muted fw-semibold">
+							Chưa có dữ liệu sân vận động nào trong hệ thống.
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 
-        <div th:if="${currentRole == 'ROLE_BTC'}" class="d-flex justify-content-end mt-4">
-            <a class="btn btn-dark px-4 py-2 fw-semibold shadow-sm"
-               th:href="@{/stadium/add}">
-                <i class="bi bi-plus-lg me-2"></i>
-                Thêm sân vận động
-            </a>
-        </div>
+		<div th:if="${currentRole == 'ROLE_BTC'}" class="d-flex justify-content-end mt-4">
+			<a class="btn btn-dark px-4 py-2 fw-semibold shadow-sm" th:href="@{/stadium/add}">
+				<i class="bi bi-plus-lg me-2"></i>
+				Thêm sân vận động
+			</a>
+		</div>
 
-    </div>
+	</div>
 
 </th:block>
+
 </html>
