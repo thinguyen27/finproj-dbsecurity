@@ -3,7 +3,8 @@
       th:replace="~{layout/admin-layout :: admin-layout(~{::content})}">
 
 <th:block th:fragment="content">
-    <div class="container my-5" th:if="${currentRole == 'ROLE_BTC' || (currentRole == 'ROLE_TD' && session.maDoi == member.maDoi)}">
+	<div class="container my-5"
+	     th:if="${currentRole == 'ROLE_BTC' || #strings.equals(currentTeamId, member.maDoi)}">
 
         <div class="text-center mb-4">
             <h2 class="fw-bold text-uppercase m-0 page-title">HỒ SƠ THÀNH VIÊN ĐỘI BÓNG</h2>
@@ -88,7 +89,8 @@
         </div>
     </div>
 
-    <div class="container my-5 text-center" th:if="${currentRole != 'ROLE_BTC' && (currentRole != 'ROLE_TD' || session.maDoi != member.maDoi)}">
+	<div class="container my-5 text-center"
+	     th:unless="${currentRole == 'ROLE_BTC' || #strings.equals(currentTeamId, member.maDoi)}">
         <div class="alert alert-danger py-5 shadow-sm rounded">
             <i class="bi bi-shield-slash-fill text-danger fs-1"></i>
             <h3 class="fw-bold mt-3">TỪ CHỐI QUYỀN TRUY CẬP (403)</h3>

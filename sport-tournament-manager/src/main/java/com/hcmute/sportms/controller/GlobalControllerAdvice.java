@@ -48,13 +48,18 @@ public class GlobalControllerAdvice {
         return null;
     }
 
-    // CUNG CẤP BIẾN currentTeamId CHO TẤT CẢ FILE HTML
     @ModelAttribute("currentTeamId")
     public String getCurrentTeamId() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
         if (auth != null && auth.getCredentials() instanceof Claims claims) {
-            return claims.get("teamId", String.class);
+
+            String teamId = claims.get("teamId", String.class);
+            System.out.println("CURRENT TEAM = " + teamId);
+
+            return teamId;
         }
+
         return null;
     }
 }
