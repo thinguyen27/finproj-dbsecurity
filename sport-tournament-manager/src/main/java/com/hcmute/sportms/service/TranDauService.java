@@ -72,23 +72,40 @@ public class TranDauService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy trận đấu"));
     }
 
+    @Transactional
     public void updateResult(TranDau match) {
 
         TranDau old = tranDauRepository.findById(match.getMaTranDau())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy trận đấu"));
 
-        old.setTySoDoiA(match.getTySoDoiA());
-        old.setTySoDoiB(match.getTySoDoiB());
+        if (match.getTySoDoiA() != null) {
+            old.setTySoDoiA(match.getTySoDoiA());
+        }
+        if (match.getTySoDoiB() != null) {
+            old.setTySoDoiB(match.getTySoDoiB());
+        }
 
-        old.setTheVangDoiA(match.getTheVangDoiA());
-        old.setTheDoDoiA(match.getTheDoDoiA());
+        if (match.getTheVangDoiA() != null) {
+            old.setTheVangDoiA(match.getTheVangDoiA());
+        }
+        if (match.getTheDoDoiA() != null) {
+            old.setTheDoDoiA(match.getTheDoDoiA());
+        }
 
-        old.setTheVangDoiB(match.getTheVangDoiB());
-        old.setTheDoDoiB(match.getTheDoDoiB());
+        if (match.getTheVangDoiB() != null) {
+            old.setTheVangDoiB(match.getTheVangDoiB());
+        }
+        if (match.getTheDoDoiB() != null) {
+            old.setTheDoDoiB(match.getTheDoDoiB());
+        }
 
-        old.setTrangThaiTran(match.getTrangThaiTran());
+        if (match.getTrangThaiTran() != null) {
+            old.setTrangThaiTran(match.getTrangThaiTran());
+        }
 
-        old.setKetQuaStatus(match.getKetQuaStatus());
+        if (match.getKetQuaStatus() != null) {
+            old.setKetQuaStatus(match.getKetQuaStatus());
+        }
 
         tranDauRepository.save(old);
     }

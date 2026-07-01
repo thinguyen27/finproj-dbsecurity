@@ -1,6 +1,7 @@
 package com.hcmute.sportms.aspect;
 
 import io.jsonwebtoken.Claims;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -17,6 +18,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class OracleVpdAspect {
     private final JdbcTemplate jdbcTemplate;
+    
+    // BỔ SUNG: Tiêm EntityManager để kiểm soát cơ chế Write-Behind của Hibernate
+    private final EntityManager entityManager;
 
     @Around("@annotation(org.springframework.transaction.annotation.Transactional)")
     public Object manageVpdContext(ProceedingJoinPoint joinPoint) throws Throwable {
@@ -39,7 +43,15 @@ public class OracleVpdAspect {
             }
 
             // 3. THỰC THI LOGIC NGHIỆP VỤ (Hàm gọi xuống DB)
-            return joinPoint.proceed();
+            Object result = joinPoint.proceed();
+
+            // 3.5. BỔ SUNG: Ép Hibernate xả lệnh (Flush) toàn bộ các câu UPDATE/INSERT/DELETE xuống DB
+            // Phải làm việc này khi Context của Database vẫn còn đang tồn tại
+            if (isContextSet) {
+                entityManager.flush();
+            }
+
+            return result;
 
         } finally {
             // 4. XÓA VPD CONTEXT (Luôn luôn chạy để tránh rò rỉ dữ liệu)

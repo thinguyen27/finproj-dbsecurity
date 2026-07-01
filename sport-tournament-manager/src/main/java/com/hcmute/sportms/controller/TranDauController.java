@@ -64,11 +64,6 @@ public class TranDauController {
     public String saveResult(@ModelAttribute("match") TranDau match,
                              Authentication authentication) {
 
-        String role = authentication.getAuthorities()
-                .iterator()
-                .next()
-                .getAuthority();
-
         boolean allowed = authentication.getAuthorities()
                 .stream()
                 .anyMatch(a ->
@@ -79,17 +74,14 @@ public class TranDauController {
             return "redirect:/403";
         }
         
-        if(role.equals("ROLE_TT")){
-
-            TranDau old = tranDauService.findById(match.getMaTranDau());
-
-            match.setKetQuaStatus(old.getKetQuaStatus());
-        }
-
+        // Đã gỡ bỏ đoạn check role.equals("ROLE_TT") tại đây
+        // Do luồng check null đã được đẩy xuống TranDauService để áp dụng chung cho cả BTC và Trọng tài
         tranDauService.updateResult(match);
 
         return "redirect:/match";
     }
+    
+    
     @GetMapping("/match/assign")
     public String assignPage(@RequestParam String maTranDau,
                              Authentication authentication,
