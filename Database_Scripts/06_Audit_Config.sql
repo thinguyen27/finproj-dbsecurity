@@ -1,8 +1,9 @@
 SET SERVEROUTPUT ON;
 SET ECHO ON;
 
--- Phần 1: Cấu hình kiểm toán hệ thống (System Audit) và kiểm toán thao tác dữ liệu nghiệp vụ (DML Audit)
--- Kết nối bằng tài khoản quản trị an ninh
+-- =========================================================================
+-- PHẦN 1: CẤU HÌNH KIỂM TOÁN HỆ THỐNG (UNIFIED AUDITING POLICIES)
+-- =========================================================================
 CONN SEC_ADMIN/SEC_ADMIN;
 
 -- Xóa các policy cũ (nếu có) để làm sạch môi trường trước khi khởi tạo lại
@@ -18,28 +19,30 @@ EXCEPTION WHEN OTHERS THEN NULL; END;
 /
 
 -- 1.1 Tạo Policy kiểm toán các thao tác quản trị hệ thống (System Audit)
--- Ghi nhận các lệnh: CREATE/ALTER/DROP USER, CREATE/ALTER/DROP ROLE, GRANT, REVOKE
 CREATE AUDIT POLICY AUDIT_SYS_SPORTS 
 PRIVILEGES CREATE USER, ALTER USER, DROP USER, 
            CREATE ROLE, ALTER ANY ROLE, DROP ANY ROLE,
            GRANT ANY ROLE, GRANT ANY PRIVILEGE;
+           
 -- Kích hoạt Policy
 AUDIT POLICY AUDIT_SYS_SPORTS;         
 
 -- 1.2 Tạo Policy kiểm toán thao tác dữ liệu nghiệp vụ (DML Audit)
--- Ghi nhận thao tác INSERT, UPDATE, DELETE trên bảng nhân sự và UPDATE trên bảng trận đấu
 CREATE AUDIT POLICY AUDIT_DML_SPORTS 
 ACTIONS INSERT ON SPORTS_OWNER.THANH_VIEN_DOI, 
         UPDATE ON SPORTS_OWNER.THANH_VIEN_DOI, 
         DELETE ON SPORTS_OWNER.THANH_VIEN_DOI, 
         UPDATE ON SPORTS_OWNER.TRAN_DAU;
 
--- 1.3 Kích hoạt các Policy để hệ thống bắt đầu giám sát
-AUDIT POLICY AUDIT_SYS_SPORTS;
+-- 1.3 Kích hoạt Policy DML
 AUDIT POLICY AUDIT_DML_SPORTS;
 
---Phần 2: Cấu hình kiểm toán dữ liệu nghiệp vụ (DML Audit) bằng Trigger
-'''Kết nối vào schema chủ sở hữu dữ liệu giải đấu'''
+
+-- =========================================================================
+-- PHẦN 2: KIỂM TOÁN CHI TIẾT (FINE-GRAINED AUDIT BẰNG TRIGGER + OLS)
+-- =========================================================================
+-- ĐÃ FIX: Sửa cú pháp comment sai
+-- Kết nối vào schema chủ sở hữu dữ liệu giải đấu
 CONN SPORTS_OWNER/CNTT2026!;
 
 -- 2.1 Trigger giám sát biến động dữ liệu nhân sự (Bảng THANH_VIEN_DOI)
@@ -65,8 +68,9 @@ BEGIN
             'TenThanhVien'  VALUE :NEW.TenThanhVien,
             'LoaiThanhVien' VALUE :NEW.LoaiThanhVien
         );
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP)
-        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :NEW.MaThanhVien, NULL, v_new_json, v_ip);
+        -- ĐÃ FIX: Bổ sung TeamCode phục vụ OLS
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
+        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :NEW.MaThanhVien, NULL, v_new_json, v_ip, :NEW.MaDoi);
         
     ELSIF UPDATING THEN
         v_action := 'UPDATE';
@@ -82,8 +86,8 @@ BEGIN
             'TenThanhVien'  VALUE :NEW.TenThanhVien,
             'LoaiThanhVien' VALUE :NEW.LoaiThanhVien
         );
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP)
-        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :NEW.MaThanhVien, v_old_json, v_new_json, v_ip);
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
+        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :NEW.MaThanhVien, v_old_json, v_new_json, v_ip, :NEW.MaDoi);
         
     ELSIF DELETING THEN
         v_action := 'DELETE';
@@ -93,8 +97,8 @@ BEGIN
             'TenThanhVien'  VALUE :OLD.TenThanhVien,
             'LoaiThanhVien' VALUE :OLD.LoaiThanhVien
         );
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP)
-        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :OLD.MaThanhVien, v_old_json, NULL, v_ip);
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
+        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :OLD.MaThanhVien, v_old_json, NULL, v_ip, :OLD.MaDoi);
     END IF;
 END;
 /
@@ -132,9 +136,11 @@ BEGIN
             'TrangThaiTran' VALUE :NEW.TrangThaiTran, 'KetQuaStatus'  VALUE :NEW.KetQuaStatus
         );
         
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP)
-        VALUES (v_user, 'UPDATE', 'TRAN_DAU', :NEW.MaTranDau, v_old_json, v_new_json, v_ip);
+        -- ĐÃ FIX: Truyền giá trị 'MATCH' cho TeamCode để gom nhóm OLS
+        INSERT INTO SPORTS_OWNER.AUDIT_LOG(Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
+        VALUES (v_user, 'UPDATE', 'TRAN_DAU', :NEW.MaTranDau, v_old_json, v_new_json, v_ip, 'MATCH');
     END IF;
 END;
 /
 
+PROMPT AUDIT POLICIES AND TRIGGERS CONFIGURED SUCCESSFULLY

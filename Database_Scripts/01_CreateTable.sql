@@ -26,7 +26,7 @@ BEGIN
 END;
 /
 
--- Bảng USER_INFO: Lưu trữ thông tin tài khoản đăng nhập, cấu hình vai trò phục vụ phân quyền RBAC và mã đội phục vụ VPD Context cách ly dữ liệu
+-- Bảng USER_INFO
 CREATE TABLE USER_INFO (
     Username        VARCHAR2(50) PRIMARY KEY,
     HoTen           NVARCHAR2(100) NOT NULL,
@@ -39,12 +39,13 @@ CREATE TABLE USER_INFO (
     IsDeleted       CHAR(1) DEFAULT 'N' NOT NULL,
     
     CONSTRAINT UK_USER_EMAIL    UNIQUE (Email),
-    CONSTRAINT CHK_USER_ROLE    CHECK (VaiTro IN ('Role_BTC','Role_TD','Role_TT','Role_GS')),
+    -- ĐÃ SỬA: Chuyển toàn bộ value sang UPPERCASE để đồng bộ với Mockdata và Policy
+    CONSTRAINT CHK_USER_ROLE    CHECK (VaiTro IN ('ROLE_BTC','ROLE_TD','ROLE_TT','ROLE_GS')),
     CONSTRAINT CHK_USER_STATUS  CHECK (TrangThai IN ('ACTIVE','LOCKED')),
     CONSTRAINT CHK_USER_DELETE  CHECK (IsDeleted IN ('Y','N'))
 );
 
--- Bảng GIAI_DAU: Quản lý vòng đời tổ chức, thời gian và trạng thái hiện tại của các giải đấu thể thao trong hệ thống
+-- Bảng GIAI_DAU
 CREATE TABLE GIAI_DAU (
     MaGiai          VARCHAR2(20) PRIMARY KEY,
     TenGiai         NVARCHAR2(200) NOT NULL,
@@ -58,7 +59,7 @@ CREATE TABLE GIAI_DAU (
     CONSTRAINT CHK_GIAI_DELETE  CHECK (IsDeleted IN ('Y','N'))
 );
 
--- Bảng SAN_THI_DAU: Danh mục thông tin các sân vận động, địa chỉ và sức chứa phục vụ công tác xếp lịch thi đấu trận đấu chuyên nghiệp
+-- Bảng SAN_THI_DAU
 CREATE TABLE SAN_THI_DAU (
     MaSan           VARCHAR2(20) PRIMARY KEY,
     TenSan          NVARCHAR2(100) NOT NULL,
@@ -67,7 +68,7 @@ CREATE TABLE SAN_THI_DAU (
     MoTa            NVARCHAR2(500)
 );
 
--- Bảng DOI_THI_DAU: Quản lý các câu lạc bộ tham gia, đóng vai trò ranh giới cô lập dữ liệu (VPD Boundary) và miền biệt lập cho OLS Compartment
+-- Bảng DOI_THI_DAU
 CREATE TABLE DOI_THI_DAU (
     MaDoi               VARCHAR2(20) PRIMARY KEY,
     MaGiai              VARCHAR2(20) NOT NULL,
@@ -83,11 +84,11 @@ CREATE TABLE DOI_THI_DAU (
     CONSTRAINT CHK_DOI_DELETE     CHECK (IsDeleted IN ('Y','N'))
 );
 
--- Thiết lập liên kết khóa ngoại an toàn từ tài khoản người dùng sang bảng đội bóng sau khi thực thể đội bóng được khởi tạo thành công
+-- Thiết lập liên kết khóa ngoại
 ALTER TABLE USER_INFO ADD CONSTRAINT FK_USER_DOI 
     FOREIGN KEY (MaDoi) REFERENCES DOI_THI_DAU(MaDoi);
 
--- Bảng THANH_VIEN_DOI: Lưu thông tin chi tiết nhân sự của đội (Cầu thủ, HLV, Y tế), là mục tiêu cốt lõi áp dụng chính sách VPD, Masking và cột nhãn OLS
+-- Bảng THANH_VIEN_DOI
 CREATE TABLE THANH_VIEN_DOI (
     MaThanhVien         VARCHAR2(20) PRIMARY KEY,
     MaDoi               VARCHAR2(20) NOT NULL,
@@ -109,7 +110,7 @@ CREATE TABLE THANH_VIEN_DOI (
     CONSTRAINT UK_DOI_SOAO        UNIQUE (MaDoi, SoAo)
 );
 
--- Bảng TRAN_DAU: Quản lý lịch thi đấu, tích hợp kết quả tỷ số, thẻ phạt và luồng phê duyệt chuyên môn phục vụ lớp ABAC nâng cao và phân quyền mức cột
+-- Bảng TRAN_DAU
 CREATE TABLE TRAN_DAU (
     MaTranDau           VARCHAR2(20) PRIMARY KEY,
     MaGiai              VARCHAR2(20) NOT NULL,
@@ -147,7 +148,7 @@ CREATE TABLE TRAN_DAU (
     CONSTRAINT CHK_THEDO_B        CHECK (TheDoDoiB >= 0)
 );
 
--- Bảng PHAN_CONG_TRAN_DAU: Quản lý tổ trọng tài (chính, phụ, VAR) và giám sát cho từng trận, làm căn cứ truy vấn để hàm chính sách VPD kiểm soát quyền cập nhật kết quả
+-- Bảng PHAN_CONG_TRAN_DAU
 CREATE TABLE PHAN_CONG_TRAN_DAU (
     MaPhanCong          NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     MaTranDau           VARCHAR2(20) NOT NULL,
@@ -160,7 +161,7 @@ CREATE TABLE PHAN_CONG_TRAN_DAU (
     CONSTRAINT CHK_PC_ROLE        CHECK (VaiTroTranDau IN ('MAIN_REFEREE','ASSISTANT_1','ASSISTANT_2','VAR','SUPERVISOR'))
 );
 
--- Bảng AUDIT_LOG: Nhật ký kiểm toán nội bộ của ứng dụng, ghi nhận lại các giá trị JSON cũ/mới phục vụ việc hiển thị dữ liệu biến động trên Security Dashboard
+-- Bảng AUDIT_LOG
 CREATE TABLE AUDIT_LOG (
     AuditID             NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     Username            VARCHAR2(50),
@@ -174,7 +175,7 @@ CREATE TABLE AUDIT_LOG (
     Status              VARCHAR2(20) DEFAULT 'SUCCESS' NOT NULL
 );
 
--- Hệ thống Chỉ mục tối ưu hiệu năng truy vấn cho ứng dụng và đẩy nhanh tốc độ biên dịch mệnh đề WHERE của chính sách bảo mật VPD
+-- Hệ thống Chỉ mục
 CREATE INDEX IDX_USER_ROLE      ON USER_INFO(VaiTro);
 CREATE INDEX IDX_USER_TEAM      ON USER_INFO(MaDoi);
 CREATE INDEX IDX_THANHVIEN_DOI  ON THANH_VIEN_DOI(MaDoi);
