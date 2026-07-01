@@ -64,20 +64,28 @@ public class TranDauController {
     public String saveResult(@ModelAttribute("match") TranDau match,
                              Authentication authentication) {
 
-        boolean allowed = authentication.getAuthorities()
-                .stream()
-                .anyMatch(a ->
-                    a.getAuthority().equals("ROLE_BTC")
-                    || a.getAuthority().equals("ROLE_TT"));
+        // Lấy Role hiện tại của người dùng đang đăng nhập
+        String currentRole = authentication.getAuthorities()
+                .iterator()
+                .next()
+                .getAuthority();
+
+        boolean allowed = currentRole.equals("ROLE_BTC") || currentRole.equals("ROLE_TT");
 
         if (!allowed) {
             return "redirect:/403";
         }
         
-        // Đã gỡ bỏ đoạn check role.equals("ROLE_TT") tại đây
-        // Do luồng check null đã được đẩy xuống TranDauService để áp dụng chung cho cả BTC và Trọng tài
+        // Gọi Service lưu kết quả xuống DB
         tranDauService.updateResult(match);
 
+        // ĐIỀU HƯỚNG THEO ROLE
+        if (currentRole.equals("ROLE_TT")) {
+            // Nếu là Trọng tài -> Trở về trang Lịch phân công của tôi
+            return "redirect:/match/my-matches";
+        }
+        
+        // Nếu là Ban tổ chức -> Trở về trang Quản lý toàn bộ trận đấu
         return "redirect:/match";
     }
     

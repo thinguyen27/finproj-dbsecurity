@@ -41,79 +41,81 @@
 						<input type="hidden" name="maTranDau" th:value="${currentMatch.maTranDau}">
 
 						<div class="mb-4">
-							<label class="form-label mb-2 text-dark"> 
-								<i class="bi bi-person-fill text-danger me-1"></i>Trọng tài chính (MAIN_REFEREE)
-							</label> 
-							<select class="form-select fw-semibold" name="mainReferee" required>
-								<option value="" disabled selected>-- Chọn trọng tài chính --</option>
-								<option
-								    th:each="user : ${referees}"
-								    th:value="${user.username}"
-								    th:text="${user.hoTen}"
-								    th:selected="${assignment.mainReferee == user.username}">
-								</option>
-							</select>
+						    <label class="form-label mb-2 text-dark"> 
+						        <i class="bi bi-person-fill text-danger me-1"></i>Trọng tài chính (MAIN_REFEREE)
+						    </label> 
+						    <select class="form-select fw-semibold" name="mainReferee" required>
+						        <option value="" disabled th:selected="${assignment.mainReferee == null}">-- Chọn trọng tài chính --</option>
+						        
+						        <option
+						            th:each="user : ${referees}"
+						            th:value="${user.username}"
+						            th:text="${user.hoTen}"
+						            th:selected="${#strings.equalsIgnoreCase(assignment.mainReferee, user.username)}">
+						        </option>
+						    </select>
 						</div>
-
+						
 						<div class="row mb-4">
-							<div class="col-md-6 mb-3 mb-md-0">
-								<label class="form-label mb-2 text-dark"> 
-									<i class="bi bi-person-fill text-warning me-1"></i>Trọng tài biên 1 (ASSISTANT_1)
-								</label> 
-								<select class="form-select" name="assistant1" required>
-									<option value="" disabled selected>-- Chọn trợ lý 1 --</option>
-									<option
-									    th:each="user : ${referees}"
-									    th:value="${user.username}"
-									    th:text="${user.hoTen}"
-									    th:selected="${assignment.assistant1 == user.username}">
-									</option>
-								</select>
-							</div>
-							<div class="col-md-6">
-								<label class="form-label mb-2 text-dark"> 
-									<i class="bi bi-person-fill text-warning me-1"></i>Trọng tài biên 2 (ASSISTANT_2)
-								</label> 
-								<select class="form-select" name="assistant2" required>
-									<option value="" disabled selected>-- Chọn trợ lý 2 --</option>
-									<option
-									    th:each="user : ${referees}"
-									    th:value="${user.username}"
-									    th:text="${user.hoTen}"
-									    th:selected="${assignment.assistant2 == user.username}">
-									</option>
-								</select>
-							</div>
+						    <div class="col-md-6 mb-3 mb-md-0">
+						        <label class="form-label mb-2 text-dark"> 
+						            <i class="bi bi-person-fill text-warning me-1"></i>Trọng tài biên 1 (ASSISTANT_1)
+						        </label> 
+						        <select class="form-select" name="assistant1" required>
+						            <option value="" disabled th:selected="${assignment.assistant1 == null}">-- Chọn trợ lý 1 --</option>
+						            <option
+						                th:each="user : ${referees}"
+						                th:value="${user.username}"
+						                th:text="${user.hoTen}"
+						                th:selected="${#strings.equalsIgnoreCase(assignment.assistant1, user.username)}">
+						            </option>
+						        </select>
+						    </div>
+						    
+						    <div class="col-md-6">
+						        <label class="form-label mb-2 text-dark"> 
+						            <i class="bi bi-person-fill text-warning me-1"></i>Trọng tài biên 2 (ASSISTANT_2)
+						        </label> 
+						        <select class="form-select" name="assistant2" required>
+						            <option value="" disabled th:selected="${assignment.assistant2 == null}">-- Chọn trợ lý 2 --</option>
+						            <option
+						                th:each="user : ${referees}"
+						                th:value="${user.username}"
+						                th:text="${user.hoTen}"
+						                th:selected="${#strings.equalsIgnoreCase(assignment.assistant2, user.username)}">
+						            </option>
+						        </select>
+						    </div>
 						</div>
-
+						
 						<div class="mb-4">
-							<label class="form-label mb-2 text-dark"> 
-								<i class="bi bi-tv-fill text-info me-1"></i>Trọng tài phòng VAR (VAR)
-							</label> 
-							<select class="form-select" name="varReferee" required>
-								<option value="" disabled selected>-- Chọn trọng tài VAR --</option>
-						<option
-								    th:each="user : ${referees}"
-								    th:value="${user.username}"
-								    th:text="${user.hoTen}"
-								    th:selected="${assignment.varReferee == user.username}">
-
-							</select>
+						    <label class="form-label mb-2 text-dark"> 
+						        <i class="bi bi-tv-fill text-info me-1"></i>Trọng tài phòng VAR (VAR)
+						    </label> 
+						    <select class="form-select" name="varReferee" required>
+						        <option value="" disabled th:selected="${assignment.varReferee == null}">-- Chọn trọng tài VAR --</option>
+						        <option
+						            th:each="user : ${referees}"
+						            th:value="${user.username}"
+						            th:text="${user.hoTen}"
+						            th:selected="${#strings.equalsIgnoreCase(assignment.varReferee, user.username)}">
+						        </option> 
+						    </select>
 						</div>
-
+						
 						<div class="mb-4">
-							<label class="form-label mb-2 text-dark"> 
-								<i class="bi bi-shield-shaded text-success me-1"></i>Giám sát trận đấu (SUPERVISOR)
-							</label> 
-							<select class="form-select" name="supervisor" required>
-								<option value="" disabled selected>-- Chọn giám sát viên --</option>
-								<option
-								    th:each="user : ${supervisors}"
-								    th:value="${user.username}"
-								    th:text="${user.hoTen}"
-								    th:selected="${assignment.supervisor == user.username}">
-								</option>
-							</select>
+						    <label class="form-label mb-2 text-dark"> 
+						        <i class="bi bi-shield-shaded text-success me-1"></i>Giám sát trận đấu (SUPERVISOR)
+						    </label> 
+						    <select class="form-select" name="supervisor" required>
+						        <option value="" disabled th:selected="${assignment.supervisor == null}">-- Chọn giám sát viên --</option>
+						        <option
+						            th:each="user : ${supervisors}"
+						            th:value="${user.username}"
+						            th:text="${user.hoTen}"
+						            th:selected="${#strings.equalsIgnoreCase(assignment.supervisor, user.username)}">
+						        </option>
+						    </select>
 						</div>
 
 						<hr class="my-4">

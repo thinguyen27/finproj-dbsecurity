@@ -91,13 +91,14 @@
 
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3 mb-md-0">
-                                <label class="form-label mb-2 fw-semibold">Trạng thái trận đấu</label>
-                                <select class="form-select fw-semibold text-secondary" th:field="*{trangThaiTran}" required>
-                                    <option value="PENDING">PENDING (Chưa diễn ra)</option>
-                                    <option value="PLAYING">PLAYING (Đang diễn ra)</option>
-                                    <option value="FINISHED">FINISHED (Đã kết thúc)</option>
-                                </select>
-                            </div>
+							    <label class="form-label mb-2 fw-semibold">Trạng thái trận đấu</label>
+							    <select class="form-select fw-semibold text-secondary" th:field="*{trangThaiTran}" th:disabled="${currentRole != 'ROLE_BTC'}">
+							        <option value="PENDING">PENDING (Chưa diễn ra)</option>
+							        <option value="PLAYING">PLAYING (Đang diễn ra)</option>
+							        <option value="FINISHED">FINISHED (Đã kết thúc)</option>
+							    </select>
+							    <input type="hidden" th:if="${currentRole != 'ROLE_BTC'}" th:field="*{trangThaiTran}">
+							</div>
                             
                             <div class="col-md-6">
                                 <label class="form-label mb-2 fw-semibold">Trạng thái phê duyệt kết quả</label>
@@ -112,9 +113,14 @@
                         <hr class="my-4">
 
                         <div class="d-flex justify-content-end gap-2">
-                            <a th:href="@{/match}" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
+                            <a th:if="${currentRole == 'ROLE_BTC'}" th:href="@{/match}" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
                                 <i class="bi bi-arrow-left me-2"></i>Quay lại
                             </a>
+                            
+                            <a th:if="${currentRole == 'ROLE_TT'}" th:href="@{/match/my-matches}" class="btn btn-outline-secondary px-4 py-2 fw-semibold">
+                                <i class="bi bi-arrow-left me-2"></i>Quay lại
+                            </a>
+                            
                             <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold shadow-sm">
                                 <i class="bi bi-cloud-arrow-up-fill me-2"></i>Gửi biên bản kết quả
                             </button>
