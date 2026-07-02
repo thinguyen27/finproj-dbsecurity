@@ -1,110 +1,7 @@
 SET SERVEROUTPUT ON;
 SET ECHO ON;
 
--- =========================================================================
--- PHẦN 1: BỔ SUNG CẤU TRÚC BẢNG AUDIT_LOG VÀ CẬP NHẬT TRIGGER DML
--- =========================================================================
-CONN SPORTS_OWNER/CNTT2026!;
-
--- Thêm cột phục vụ OLS và Phân mảnh VPD
-ALTER TABLE SPORTS_OWNER.AUDIT_LOG ADD OLS_LABEL NUMBER(10);
-ALTER TABLE SPORTS_OWNER.AUDIT_LOG ADD TeamCode VARCHAR2(20);
-
--- Cập nhật lại Trigger nhân sự để ghi nhận TeamCode
-CREATE OR REPLACE TRIGGER TRG_AUDIT_THANH_VIEN
-AFTER INSERT OR UPDATE OR DELETE ON SPORTS_OWNER.THANH_VIEN_DOI
-FOR EACH ROW
-DECLARE
-    v_action   VARCHAR2(20);
-    v_old_json CLOB := NULL;
-    v_new_json CLOB := NULL;
-    v_user     VARCHAR2(50);
-    v_ip       VARCHAR2(100);
-BEGIN
-    v_user := NVL(SYS_CONTEXT('SPORT_CTX', 'USERNAME'), SYS_CONTEXT('USERENV', 'SESSION_USER'));
-    v_ip   := SYS_CONTEXT('USERENV', 'IP_ADDRESS');
-
-    IF INSERTING THEN
-        v_action := 'INSERT';
-        v_new_json := JSON_OBJECT(
-            'MaThanhVien'   VALUE :NEW.MaThanhVien,
-            'MaDoi'         VALUE :NEW.MaDoi,
-            'TenThanhVien'  VALUE :NEW.TenThanhVien,
-            'LoaiThanhVien' VALUE :NEW.LoaiThanhVien
-        );
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG (Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
-        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :NEW.MaThanhVien, NULL, v_new_json, v_ip, :NEW.MaDoi);
-
-    ELSIF UPDATING THEN
-        v_action := 'UPDATE';
-        v_old_json := JSON_OBJECT(
-            'MaThanhVien'   VALUE :OLD.MaThanhVien,
-            'MaDoi'         VALUE :OLD.MaDoi,
-            'TenThanhVien'  VALUE :OLD.TenThanhVien,
-            'LoaiThanhVien' VALUE :OLD.LoaiThanhVien
-        );
-        v_new_json := JSON_OBJECT(
-            'MaThanhVien'   VALUE :NEW.MaThanhVien,
-            'MaDoi'         VALUE :NEW.MaDoi,
-            'TenThanhVien'  VALUE :NEW.TenThanhVien,
-            'LoaiThanhVien' VALUE :NEW.LoaiThanhVien
-        );
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG (Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
-        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :NEW.MaThanhVien, v_old_json, v_new_json, v_ip, :NEW.MaDoi);
-
-    ELSIF DELETING THEN
-        v_action := 'DELETE';
-        v_old_json := JSON_OBJECT(
-            'MaThanhVien'   VALUE :OLD.MaThanhVien,
-            'MaDoi'         VALUE :OLD.MaDoi,
-            'TenThanhVien'  VALUE :OLD.TenThanhVien,
-            'LoaiThanhVien' VALUE :OLD.LoaiThanhVien
-        );
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG (Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
-        VALUES (v_user, v_action, 'THANH_VIEN_DOI', :OLD.MaThanhVien, v_old_json, NULL, v_ip, :OLD.MaDoi);
-    END IF;
-END;
-/
-
--- Cập nhật lại Trigger trận đấu để gán TeamCode là 'MATCH'
-CREATE OR REPLACE TRIGGER TRG_AUDIT_TRAN_DAU
-AFTER UPDATE ON SPORTS_OWNER.TRAN_DAU
-FOR EACH ROW
-DECLARE
-    v_old_json CLOB := NULL;
-    v_new_json CLOB := NULL;
-    v_user     VARCHAR2(50);
-    v_ip       VARCHAR2(100);
-BEGIN
-    IF :OLD.TySoDoiA <> :NEW.TySoDoiA OR :OLD.TySoDoiB <> :NEW.TySoDoiB OR :OLD.TheVangDoiA <> :NEW.TheVangDoiA OR :OLD.TheVangDoiB <> :NEW.TheVangDoiB OR :OLD.TheDoDoiA <> :NEW.TheDoDoiA OR :OLD.TheDoDoiB <> :NEW.TheDoDoiB OR :OLD.TrangThaiTran <> :NEW.TrangThaiTran OR :OLD.KetQuaStatus <> :NEW.KetQuaStatus THEN
-
-        v_user := NVL(SYS_CONTEXT('SPORT_CTX','USERNAME'), SYS_CONTEXT('USERENV','SESSION_USER'));
-        v_ip := SYS_CONTEXT('USERENV','IP_ADDRESS');
-
-        v_old_json := JSON_OBJECT(
-            'TySoDoiA' VALUE :OLD.TySoDoiA, 'TySoDoiB' VALUE :OLD.TySoDoiB,
-            'TheVangDoiA' VALUE :OLD.TheVangDoiA, 'TheVangDoiB' VALUE :OLD.TheVangDoiB,
-            'TheDoDoiA' VALUE :OLD.TheDoDoiA, 'TheDoDoiB' VALUE :OLD.TheDoDoiB,
-            'TrangThaiTran' VALUE :OLD.TrangThaiTran, 'KetQuaStatus' VALUE :OLD.KetQuaStatus
-        );
-
-        v_new_json := JSON_OBJECT(
-            'TySoDoiA' VALUE :NEW.TySoDoiA, 'TySoDoiB' VALUE :NEW.TySoDoiB,
-            'TheVangDoiA' VALUE :NEW.TheVangDoiA, 'TheVangDoiB' VALUE :NEW.TheVangDoiB,
-            'TheDoDoiA' VALUE :NEW.TheDoDoiA, 'TheDoDoiB' VALUE :NEW.TheDoDoiB,
-            'TrangThaiTran' VALUE :NEW.TrangThaiTran, 'KetQuaStatus' VALUE :NEW.KetQuaStatus
-        );
-
-        INSERT INTO SPORTS_OWNER.AUDIT_LOG (Username, ActionType, ObjectName, RecordID, OldValue, NewValue, ClientIP, TeamCode)
-        VALUES (v_user, 'UPDATE', 'TRAN_DAU', :NEW.MaTranDau, v_old_json, v_new_json, v_ip, 'MATCH');
-    END IF;
-END;
-/
-
-
--- =========================================================================
--- PHẦN 2: CHỈNH SỬA LOGIC HÀM VPD CHO BẢNG AUDIT_LOG
--- =========================================================================
+-- CHỈNH SỬA LOGIC HÀM VPD CHO BẢNG AUDIT_LOG
 CONN SEC_ADMIN/SEC_ADMIN;
 
 CREATE OR REPLACE FUNCTION SEC_ADMIN.FN_VPD_AUDIT (
@@ -122,15 +19,12 @@ BEGIN
     ELSIF v_role = 'ROLE_TD' THEN
         RETURN 'TeamCode='''||v_team||'''';
     ELSE
-        RETURN '1=2'; -- ĐÃ FIX: Chặn hiển thị với các Role không có thẩm quyền kiểm toán
+        RETURN '1=2'; 
     END IF;
 END;
 /
 
-
--- =========================================================================
--- PHẦN 3: TRIỂN KHAI ORACLE LABEL SECURITY (OLS)
--- =========================================================================
+-- TRIỂN KHAI ORACLE LABEL SECURITY (OLS)
 CONN LBACSYS/LBACSYS;
 
 BEGIN
@@ -190,9 +84,7 @@ BEGIN
 END;
 /
 
--- =========================================================================
--- PHẦN 4: TRIGGER DÁN NHÃN ĐỘNG (MAC)
--- =========================================================================
+-- TRIGGER DÁN NHÃN ĐỘNG (MAC)
 CONN SPORTS_OWNER/CNTT2026!;
 
 CREATE OR REPLACE TRIGGER TRG_AUDIT_LOG_OLS
@@ -217,12 +109,9 @@ END;
 /
 
 
--- =========================================================================
--- PHẦN 5: KHỞI TẠO TÀI KHOẢN APP & CẤP QUYỀN CLEARANCE
--- =========================================================================
+-- KHỞI TẠO TÀI KHOẢN APP & CẤP QUYỀN CLEARANCE
 CONN SYSTEM/manager;
 
--- ĐÃ FIX: Tạo vật lý các Proxy User để SA_USER_ADMIN không văng lỗi ORA-01918
 BEGIN
     EXECUTE IMMEDIATE 'CREATE USER BTC_APP IDENTIFIED BY "App2026#"';
     EXECUTE IMMEDIATE 'CREATE USER TD_APP IDENTIFIED BY "App2026#"';
