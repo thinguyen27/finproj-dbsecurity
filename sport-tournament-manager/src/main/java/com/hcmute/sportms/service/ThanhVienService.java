@@ -77,8 +77,7 @@ public class ThanhVienService {
         tv.setEmailThanhVien(request.getEmailThanhVien());
         tv.setThongTinSucKhoe(request.getThongTinSucKhoe());
 
-        // OLS Label mặc định
-        tv.setOlsLabel(100);
+        // Đã xóa bỏ phần tv.setOlsLabel(100); vì bảng THANH_VIEN_DOI không có cột này
 
         return thanhVienRepository.save(tv);
     }

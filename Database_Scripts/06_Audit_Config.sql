@@ -52,6 +52,7 @@ DECLARE
     v_user     VARCHAR2(50);
     v_ip       VARCHAR2(100);
 BEGIN
+    DBMS_OUTPUT.PUT_LINE('Trigger THANH_VIEN đã được kích hoạt!');
     v_user := NVL(SYS_CONTEXT('SPORT_CTX', 'USERNAME'), SYS_CONTEXT('USERENV', 'SESSION_USER'));
     v_ip   := SYS_CONTEXT('USERENV', 'IP_ADDRESS');
 

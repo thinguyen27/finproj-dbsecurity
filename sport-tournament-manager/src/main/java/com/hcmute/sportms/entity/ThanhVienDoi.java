@@ -47,9 +47,6 @@ public class ThanhVienDoi {
     @Column(name = "THONGTINSUCKHOE", length = 500)
     private String thongTinSucKhoe;
 
-    @Column(name = "OLS_LABEL")
-    private Integer olsLabel;
-
     @Column(name = "ISDELETED", nullable = false, length = 1)
     private String isDeleted = "N";
 }
