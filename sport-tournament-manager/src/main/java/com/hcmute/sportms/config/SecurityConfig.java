@@ -25,8 +25,8 @@ public class SecurityConfig {
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
             	    // Static resources
-            	    .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/assets/**").permitAll()
-            	    .requestMatchers("/login", "/register", "/forgot-password", "/reset-password", "/", "/index", "/home").permitAll()
+            		.requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**", "/assets/**").permitAll()
+                    .requestMatchers("/login", "/register", "/forgot-password", "/reset-password", "/", "/index", "/home", "/error").permitAll()
                     .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
             	    
             	    // 1. Phân hệ MATCH
@@ -35,9 +35,10 @@ public class SecurityConfig {
             	    
             	    // 2. Phân hệ TEAM & TOURNAMENT
             	    .requestMatchers("/team/list", "/team/detail/**", "/tournament/list", "/tournament/detail/**", "/stadium/**").permitAll()
-            	    .requestMatchers("/team/add/**", "/team/delete/**", "/user/**").hasAuthority("ROLE_BTC")
-            	    .requestMatchers("/team/edit/**").hasAnyAuthority("ROLE_BTC", "ROLE_TD")
-            	    .requestMatchers("/team/member/**").hasAnyAuthority("ROLE_BTC","ROLE_TD")
+            	   
+            	    .requestMatchers("/team/add", "/team/add/**", "/team/save", "/team/delete/**", "/user/**").hasAuthority("ROLE_BTC")
+                    .requestMatchers("/team/edit/**").hasAnyAuthority("ROLE_BTC", "ROLE_TD")
+                    .requestMatchers("/team/member/**").hasAnyAuthority("ROLE_BTC","ROLE_TD")
             	    
             	    // 3. Phân hệ ADMIN & AUDIT
             	    .requestMatchers("/admin/**").hasAuthority("ROLE_BTC")

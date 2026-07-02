@@ -21,14 +21,13 @@ public class TeamController {
     private final GiaiDauService giaiDauService;
     private final UserService userService;
     private final ThanhVienService thanhVienService;
+    
     /**
      * Danh sách đội
      */
     @GetMapping("/list")
     public String showList(Model model) {
-
         model.addAttribute("teams", teamService.getAllTeams());
-
         return "team/team-list";
     }
 
@@ -40,13 +39,8 @@ public class TeamController {
             @PathVariable String maDoi,
             Model model) {
 
-        model.addAttribute(
-                "currentTeam",
-                teamService.findById(maDoi));
-
-        model.addAttribute(
-                "memberList",
-                thanhVienService.layDanhSachThanhVienCuaDoi(maDoi));
+        model.addAttribute("currentTeam", teamService.findById(maDoi));
+        model.addAttribute("memberList", thanhVienService.layDanhSachThanhVienCuaDoi(maDoi));
 
         return "team/team-detail";
     }
@@ -59,33 +53,30 @@ public class TeamController {
             @RequestParam String maDoi,
             Model model) {
 
-        model.addAttribute(
-                "currentTeam",
-                teamService.findById(maDoi));
-
-        model.addAttribute(
-                "upcomingMatches",
-                tranDauService.getUpcomingMatches(maDoi));
-
-        model.addAttribute(
-                "pastMatches",
-                tranDauService.getPastMatches(maDoi));
+        model.addAttribute("currentTeam", teamService.findById(maDoi));
+        model.addAttribute("upcomingMatches", tranDauService.getUpcomingMatches(maDoi));
+        model.addAttribute("pastMatches", tranDauService.getPastMatches(maDoi));
 
         return "team/team-match";
     }
 
     /**
-     * Form thêm đội
+     * Form thêm đội (Hỗ trợ cả trường hợp CÓ và KHÔNG CÓ mã giải đấu truyền vào)
      */
-    @GetMapping("/add/{maGiai}")
+    @GetMapping({"/add", "/add/{maGiai}"})
     public String showAddTeamForm(
-            @PathVariable String maGiai,
+            @PathVariable(required = false) String maGiai,
             Model model) {
 
         DoiThiDau team = new DoiThiDau();
 
-        team.setGiaiDau(
-                giaiDauService.layGiaiDauTheoMa(maGiai));
+        if (maGiai != null && !maGiai.isEmpty()) {
+            // Trường hợp 1: Có mã giải trên URL -> Gắn sẵn giải đấu cho đội
+            team.setGiaiDau(giaiDauService.layGiaiDauTheoMa(maGiai));
+        } else {
+            // Trường hợp 2: Truy cập /team/add -> Trả về toàn bộ danh sách giải đấu để người dùng tự chọn
+            model.addAttribute("tournaments", giaiDauService.layDanhSachGiaiDau());
+        }
 
         model.addAttribute("team", team);
         model.addAttribute("users", userService.getTruongDoan());
@@ -101,13 +92,10 @@ public class TeamController {
             @PathVariable String maDoi,
             Model model) {
 
-        model.addAttribute(
-                "team",
-                teamService.findById(maDoi));
-
-        model.addAttribute(
-                "users",
-                userService.getTruongDoan());
+        model.addAttribute("team", teamService.findById(maDoi));
+        // Khi sửa đội cũng có thể cần danh sách giải đấu nếu bạn cho phép đổi giải
+        model.addAttribute("tournaments", giaiDauService.layDanhSachGiaiDau());
+        model.addAttribute("users", userService.getTruongDoan());
 
         return "team/team-form";
     }
@@ -116,15 +104,24 @@ public class TeamController {
      * Lưu đội
      */
     @PostMapping("/save")
-    public String saveTeam(
-            @ModelAttribute DoiThiDau team) {
+    public String saveTeam(@ModelAttribute DoiThiDau team) {
+        
+        // KIỂM TRA BẮT BUỘC: Database quy định cột MaGiai là NOT NULL.
+        // Chặn ngay từ Controller nếu người dùng quên chọn Giải Đấu trên Form.
+        if (team.getGiaiDau() == null || 
+            team.getGiaiDau().getMaGiai() == null || 
+            team.getGiaiDau().getMaGiai().trim().isEmpty()) {
+            
+            // Ném ra thông báo lỗi để nhắc nhở
+            throw new IllegalArgumentException("THAO TÁC LỖI: Bắt buộc phải chọn một Giải Đấu cho đội bóng (Không được để trống)!");
+        }
 
+        // Sau khi đã chắc chắn có mã giải đấu, thực hiện lưu bình thường
         teamService.save(team);
 
-        return "redirect:/tournament/detail/"
-                + team.getGiaiDau().getMaGiai();
+        // Chuyển hướng về trang chi tiết của giải đấu đó
+        return "redirect:/tournament/detail/" + team.getGiaiDau().getMaGiai();
     }
-
     /**
      * Xóa đội
      */
@@ -133,8 +130,6 @@ public class TeamController {
             @PathVariable String maDoi) {
 
         teamService.delete(maDoi);
-
         return "redirect:/team/list";
     }
-
 }
