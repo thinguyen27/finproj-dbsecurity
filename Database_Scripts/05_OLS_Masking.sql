@@ -123,7 +123,7 @@ EXCEPTION WHEN OTHERS THEN NULL; END; -- Bỏ qua nếu user đã tồn tại
 
 CONN SEC_ADMIN/SEC_ADMIN;
 
--- Gán nhãn cho Ban Tổ Chức
+-- Gán nhãn cho Ban Tổ Chức App
 BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
@@ -134,7 +134,7 @@ BEGIN
 END;
 /
 
--- Gán nhãn cho Trưởng đoàn
+-- Gán nhãn cho Trưởng đoàn App
 BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
@@ -145,7 +145,7 @@ BEGIN
 END;
 /
 
--- Gán nhãn cho Trọng tài
+-- Gán nhãn cho Trọng tài App
 BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
@@ -156,7 +156,7 @@ BEGIN
 END;
 /
 
--- Gán nhãn cho Giám sát
+-- Gán nhãn cho Giám sát App
 BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
@@ -167,6 +167,7 @@ BEGIN
 END;
 /
 
+-- Gán nhãn tối cao cho tài khoản SEC_ADMIN
 BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
@@ -177,12 +178,35 @@ BEGIN
 END;
 /
 
+-- Gán nhãn tối cao cho SPORTS_OWNER
 BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
         user_name       => 'SPORTS_OWNER',
-        max_read_label  => 'SECRET:MEMBER,SECURITY:SYSTEM',
-        max_write_label => 'SECRET:MEMBER,SECURITY:SYSTEM'
+        max_read_label  => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM',
+        max_write_label => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM'
+    );
+END;
+/
+
+-- ĐÃ FIX: Gán nhãn tối cao cho tài khoản test vật lý BTC_ADMIN
+BEGIN
+    SA_USER_ADMIN.SET_USER_LABELS(
+        policy_name     => 'SPORT_POLICY',
+        user_name       => 'BTC_ADMIN',
+        max_read_label  => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM',
+        max_write_label => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM'
+    );
+END;
+/
+
+-- ĐÃ FIX: Gán nhãn cho tài khoản test vật lý TT_CHINH để ghi log
+BEGIN
+    SA_USER_ADMIN.SET_USER_LABELS(
+        policy_name     => 'SPORT_POLICY',
+        user_name       => 'TT_CHINH',
+        max_read_label  => 'INTERNAL:MATCH:SYSTEM',
+        max_write_label => 'INTERNAL:MATCH:SYSTEM'
     );
 END;
 /
