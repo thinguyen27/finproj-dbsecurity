@@ -239,8 +239,8 @@ BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
         user_name       => 'BTC_APP',
-        max_read_label  => 'SECRET:MEMBER,SECURITY:SYSTEM',
-        max_write_label => 'SECRET:MEMBER,SECURITY:SYSTEM'
+        max_read_label  => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM',
+        max_write_label => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM'
     );
 END;
 /
@@ -282,8 +282,8 @@ BEGIN
     SA_USER_ADMIN.SET_USER_LABELS(
         policy_name     => 'SPORT_POLICY',
         user_name       => 'SEC_ADMIN',
-        max_read_label  => 'SECRET:MEMBER,SECURITY:SYSTEM',
-        max_write_label => 'SECRET:MEMBER,SECURITY:SYSTEM'
+        max_read_label  => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM',
+        max_write_label => 'SECRET:MATCH,TEAM,MEMBER,SECURITY:SYSTEM'
     );
 END;
 /
@@ -298,5 +298,64 @@ BEGIN
 END;
 /
 
+-- =========================================================================
+-- PHẦN 6: DATA REDACTION - CHE GIẤU DỮ LIỆU NHẠY CẢM
+-- =========================================================================
+CONN SEC_ADMIN/SEC_ADMIN;
+
+-- Dọn dẹp chính sách cũ nếu có để tránh xung đột môi trường
+BEGIN
+    DBMS_REDACT.DROP_POLICY(
+        object_schema => 'SPORTS_OWNER',
+        object_name   => 'THANH_VIEN_DOI',
+        policy_name   => 'REDACT_MEMBER_SENSITIVE'
+    );
+EXCEPTION WHEN OTHERS THEN NULL;
+END;
+/
+
+-- Cấu hình chính sách che giấu thông tin nâng cao
+BEGIN
+    -- 1. Áp dụng che giấu toàn phần (FULL) cho cột CCCD
+    DBMS_REDACT.ADD_POLICY(
+        object_schema       => 'SPORTS_OWNER',
+        object_name         => 'THANH_VIEN_DOI',
+        policy_name         => 'REDACT_MEMBER_SENSITIVE',
+        column_name         => 'CCCD',
+        function_type       => DBMS_REDACT.FULL,
+        expression          => 'SYS_CONTEXT(''SPORT_CTX'', ''ROLE'') = ''ROLE_GS'''
+    );
+
+    -- 2. Thêm cột Số điện thoại vào chính sách che giấu
+    DBMS_REDACT.ALTER_POLICY(
+        object_schema       => 'SPORTS_OWNER',
+        object_name         => 'THANH_VIEN_DOI',
+        policy_name         => 'REDACT_MEMBER_SENSITIVE',
+        action              => DBMS_REDACT.ADD_COLUMN,
+        column_name         => 'SoDienThoai',
+        function_type       => DBMS_REDACT.FULL
+    );
+
+    -- 3. Thêm cột Email vào chính sách che giấu
+    DBMS_REDACT.ALTER_POLICY(
+        object_schema       => 'SPORTS_OWNER',
+        object_name         => 'THANH_VIEN_DOI',
+        policy_name         => 'REDACT_MEMBER_SENSITIVE',
+        action              => DBMS_REDACT.ADD_COLUMN,
+        column_name         => 'EmailThanhVien',
+        function_type       => DBMS_REDACT.FULL
+    );
+
+    -- 4. Thêm cột Thông tin sức khỏe vào chính sách che giấu
+    DBMS_REDACT.ALTER_POLICY(
+        object_schema       => 'SPORTS_OWNER',
+        object_name         => 'THANH_VIEN_DOI',
+        policy_name         => 'REDACT_MEMBER_SENSITIVE',
+        action              => DBMS_REDACT.ADD_COLUMN,
+        column_name         => 'ThongTinSucKhoe',
+        function_type       => DBMS_REDACT.FULL
+    );
+END;
+/
 
 PROMPT OLS MASKING AND CLEARANCE POLICIES CONFIGURED SUCCESSFULLY
