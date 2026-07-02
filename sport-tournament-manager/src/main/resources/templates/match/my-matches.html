@@ -30,7 +30,7 @@
                 </div>
                 
                 <div class="match-main-content d-flex align-items-center justify-content-center flex-grow-1 px-4">
-                    <div class="team-home text-end fw-bold text-dark fs-5" style="width: 35%;" th:text="${m.maDoiA}">Đội nhà</div>
+                    <div class="team-home text-end fw-bold text-dark fs-5" style="width: 35%;" th:text="${m.tenDoiA}">Đội nhà</div>
                     
                     <div class="match-score-box d-flex flex-column align-items-center mx-4" style="width: 25%;">
                         <div th:if="${m.trangThaiTran == 'FINISHED' || m.trangThaiTran == 'PLAYING'}" class="d-flex align-items-center bg-dark text-white px-3 py-1 rounded fw-bold fs-4">
@@ -47,7 +47,7 @@
                                th:text="${m.trangThaiTran == 'PENDING'} ? ${#strings.substring(m.ngayGioThiDau, 0, 10)} : 'Vòng ' + ${m.vongDau}">Ngày thi đấu</small>
                     </div>
                     
-                    <div class="team-away text-start fw-bold text-dark fs-5" style="width: 35%;" th:text="${m.maDoiB}">Đội khách</div>
+                    <div class="team-away text-start fw-bold text-dark fs-5" style="width: 35%;" th:text="${m.tenDoiB}">Đội khách</div>
                 </div>
 
                 <div class="match-actions pe-2 border-start ps-4">

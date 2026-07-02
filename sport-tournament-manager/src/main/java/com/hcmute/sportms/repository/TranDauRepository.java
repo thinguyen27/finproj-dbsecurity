@@ -47,24 +47,41 @@ public interface TranDauRepository extends JpaRepository<TranDau, String> {
 	
 	
 	@Query(value = """
-	        SELECT 
-	            t.MATRANDAU, 
-	            t.MADOIA, 
-	            t.MADOIB, 
-	            t.TYSODOIA, 
-	            t.TYSODOIB, 
-	            t.TRANGTHAITRAN, 
-	            TO_CHAR(t.NGAYGIOTHIDAU, 'YYYY-MM-DD HH24:MI:SS'), 
-	            t.VONGDAU
-	        FROM SPORTS_OWNER.TRAN_DAU t
-	        INNER JOIN SPORTS_OWNER.PHAN_CONG_TRAN_DAU pc ON t.MATRANDAU = pc.MaTranDau
-	        WHERE pc.Username = :username
-	          AND pc.VaiTroTranDau IN ('MAIN_REFEREE', 'ASSISTANT_1', 'ASSISTANT_2', 'VAR')
-	        ORDER BY t.NGAYGIOTHIDAU DESC
-	    """, nativeQuery = true)
-	    List<Object[]> findMatchesByRefereeUsername(@Param("username") String username);
+	        SELECT
+	            t.MATRANDAU,
+	            t.MADOIA,
+	            t.MADOIB,
 
-	    
-	    @Query(value = "SELECT MAX(t.MATRANDAU) FROM SPORTS_OWNER.TRAN_DAU t", nativeQuery = true)
-	    String findMaxMatchCode();
+	            da.TENDOI AS TENDOIA,
+	            db.TENDOI AS TENDOIB,
+
+	            t.TYSODOIA,
+	            t.TYSODOIB,
+	            t.TRANGTHAITRAN,
+	            TO_CHAR(t.NGAYGIOTHIDAU,'YYYY-MM-DD HH24:MI:SS'),
+	            t.VONGDAU
+
+	        FROM SPORTS_OWNER.TRAN_DAU t
+
+	        INNER JOIN SPORTS_OWNER.PHAN_CONG_TRAN_DAU pc
+	            ON pc.MATRANDAU = t.MATRANDAU
+
+	        LEFT JOIN SPORTS_OWNER.DOI_THI_DAU da
+	            ON da.MADOI = t.MADOIA
+
+	        LEFT JOIN SPORTS_OWNER.DOI_THI_DAU db
+	            ON db.MADOI = t.MADOIB
+
+	        WHERE pc.USERNAME = :username
+	          AND pc.VAITROTRANDAU IN
+	            ('MAIN_REFEREE','ASSISTANT_1','ASSISTANT_2','VAR')
+
+	        ORDER BY t.NGAYGIOTHIDAU DESC
+	        """, nativeQuery = true)
+	List<Object[]> findMatchesByRefereeUsername(@Param("username") String username);
+	@Query(value = """
+		    SELECT MAX(MATRANDAU)
+		    FROM SPORTS_OWNER.TRAN_DAU
+		    """, nativeQuery = true)    
+	String findMaxMatchCode();
 }

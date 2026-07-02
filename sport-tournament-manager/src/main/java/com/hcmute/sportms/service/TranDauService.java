@@ -160,18 +160,31 @@ public class TranDauService {
     }
     
     public List<MyMatchDTO> getMatchesForReferee(String username) {
-        List<Object[]> results = tranDauRepository.findMatchesByRefereeUsername(username);
-        
+
+        List<Object[]> results =
+                tranDauRepository.findMatchesByRefereeUsername(username);
+
         return results.stream().map(row -> MyMatchDTO.builder()
+
                 .maTranDau((String) row[0])
+
                 .maDoiA((String) row[1])
                 .maDoiB((String) row[2])
-                .tySoDoiA(row[3] != null ? ((Number) row[3]).intValue() : 0)
-                .tySoDoiB(row[4] != null ? ((Number) row[4]).intValue() : 0)
-                .trangThaiTran((String) row[5])
-                .ngayGioThiDau(row[6] != null ? row[6].toString() : "")
-                .vongDau(row[7] != null ? ((Number) row[7]).intValue() : 1)
-                .build()
-        ).collect(Collectors.toList());
+
+                .tenDoiA((String) row[3])
+                .tenDoiB((String) row[4])
+
+                .tySoDoiA(row[5] != null ? ((Number) row[5]).intValue() : 0)
+                .tySoDoiB(row[6] != null ? ((Number) row[6]).intValue() : 0)
+
+                .trangThaiTran((String) row[7])
+
+                .ngayGioThiDau(row[8] != null ? row[8].toString() : "")
+
+                .vongDau(row[9] != null ? ((Number) row[9]).intValue() : 1)
+
+                .build())
+
+                .collect(Collectors.toList());
     }
 }

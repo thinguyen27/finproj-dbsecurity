@@ -9,6 +9,8 @@ public class MyMatchDTO {
     private String maTranDau;
     private String maDoiA;
     private String maDoiB;
+    private String tenDoiA;
+    private String tenDoiB;
     private Integer tySoDoiA;
     private Integer tySoDoiB;
     private String trangThaiTran;
