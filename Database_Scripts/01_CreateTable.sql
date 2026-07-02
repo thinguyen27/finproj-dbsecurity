@@ -100,8 +100,7 @@ CREATE TABLE THANH_VIEN_DOI (
     CCCD                VARCHAR2(20),   
     SoDienThoai         VARCHAR2(15),   
     EmailThanhVien      VARCHAR2(100),  
-    ThongTinSucKhoe     NVARCHAR2(500), 
-    OLS_LABEL           NUMBER(10),         
+    ThongTinSucKhoe     NVARCHAR2(500),       
     IsDeleted           CHAR(1) DEFAULT 'N' NOT NULL,
     
     CONSTRAINT CHK_LOAI_THANHVIEN CHECK (LoaiThanhVien IN ('CAU_THU','HLV_TRUONG','HLV_PHO','BAC_SI')),
@@ -172,7 +171,9 @@ CREATE TABLE AUDIT_LOG (
     NewValue            CLOB,
     ClientIP            VARCHAR2(100),
     ActionTime          TIMESTAMP DEFAULT SYSTIMESTAMP,
-    Status              VARCHAR2(20) DEFAULT 'SUCCESS' NOT NULL
+    Status              VARCHAR2(20) DEFAULT 'SUCCESS' NOT NULL,
+    TeamCode            VARCHAR2(20),
+    OLS_LABEL           NUMBER
 );
 
 -- Hệ thống Chỉ mục
