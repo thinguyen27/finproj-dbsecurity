@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 @ControllerAdvice
 public class GlobalModelAdvice {
 
-    @ModelAttribute("username")
+    // ĐÃ SỬA: Đổi từ "username" thành "currentUser"
+    @ModelAttribute("currentUser")
     public String getUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
@@ -17,12 +18,13 @@ public class GlobalModelAdvice {
         return null;
     }
 
-    @ModelAttribute("role")
+    // ĐÃ SỬA: Đổi từ "role" thành "currentRole"
+    @ModelAttribute("currentRole")
     public String getRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
             if (!auth.getAuthorities().isEmpty()) {
-                // THÊM .toUpperCase() Ở ĐÂY ĐỂ ÉP CHỮ IN HOA:
+                // Ép chữ in hoa để đảm bảo đồng bộ khi so sánh trong Thymeleaf
                 return auth.getAuthorities().iterator().next().getAuthority().toUpperCase();
             }
         }

@@ -64,32 +64,32 @@ public class TranDauController {
     public String saveResult(@ModelAttribute("match") TranDau match,
                              Authentication authentication) {
 
-        String role = authentication.getAuthorities()
+        // Lấy Role hiện tại của người dùng đang đăng nhập
+        String currentRole = authentication.getAuthorities()
                 .iterator()
                 .next()
                 .getAuthority();
 
-        boolean allowed = authentication.getAuthorities()
-                .stream()
-                .anyMatch(a ->
-                    a.getAuthority().equals("ROLE_BTC")
-                    || a.getAuthority().equals("ROLE_TT"));
+        boolean allowed = currentRole.equals("ROLE_BTC") || currentRole.equals("ROLE_TT");
 
         if (!allowed) {
             return "redirect:/403";
         }
         
-        if(role.equals("ROLE_TT")){
-
-            TranDau old = tranDauService.findById(match.getMaTranDau());
-
-            match.setKetQuaStatus(old.getKetQuaStatus());
-        }
-
+        // Gọi Service lưu kết quả xuống DB
         tranDauService.updateResult(match);
 
+        // ĐIỀU HƯỚNG THEO ROLE
+        if (currentRole.equals("ROLE_TT")) {
+            // Nếu là Trọng tài -> Trở về trang Lịch phân công của tôi
+            return "redirect:/match/my-matches";
+        }
+        
+        // Nếu là Ban tổ chức -> Trở về trang Quản lý toàn bộ trận đấu
         return "redirect:/match";
     }
+    
+    
     @GetMapping("/match/assign")
     public String assignPage(@RequestParam String maTranDau,
                              Authentication authentication,

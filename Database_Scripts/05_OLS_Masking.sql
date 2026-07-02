@@ -278,4 +278,25 @@ BEGIN
 END;
 /
 
+BEGIN
+    SA_USER_ADMIN.SET_USER_LABELS(
+        policy_name     => 'SPORT_POLICY',
+        user_name       => 'SEC_ADMIN',
+        max_read_label  => 'SECRET:MEMBER,SECURITY:SYSTEM',
+        max_write_label => 'SECRET:MEMBER,SECURITY:SYSTEM'
+    );
+END;
+/
+
+BEGIN
+    SA_USER_ADMIN.SET_USER_LABELS(
+        policy_name     => 'SPORT_POLICY',
+        user_name       => 'SPORTS_OWNER',
+        max_read_label  => 'SECRET:MEMBER,SECURITY:SYSTEM',
+        max_write_label => 'SECRET:MEMBER,SECURITY:SYSTEM'
+    );
+END;
+/
+
+
 PROMPT OLS MASKING AND CLEARANCE POLICIES CONFIGURED SUCCESSFULLY

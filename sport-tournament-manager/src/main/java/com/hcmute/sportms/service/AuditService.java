@@ -1,7 +1,6 @@
 package com.hcmute.sportms.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hcmute.sportms.dto.response.AuditLogResponse;
 import com.hcmute.sportms.entity.AuditLog;
@@ -10,14 +9,13 @@ import com.hcmute.sportms.repository.AuditRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.springframework.transaction.annotation.Transactional;
-
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +24,7 @@ public class AuditService {
     private final AuditRepository auditRepository;
     private final AuditLogRepository auditLogRepository;
     private final ObjectMapper objectMapper;
+
     @Transactional(readOnly = true)
     public List<AuditLogResponse> getParsedAuditLogs() {
         List<Map<String, Object>> rawLogs = auditRepository.fetchRawAuditLogs();
@@ -65,10 +64,14 @@ public class AuditService {
         }
     }
 
+    // THÊM TRANSACTIONAL ĐỂ KHÔNG BỊ TRỐNG DỮ LIỆU
+    @Transactional(readOnly = true)
     public List<AuditLog> getLatestLogs() {
         return auditLogRepository.findTop50ByOrderByActionTimeDesc();
     }
 
+    // THÊM TRANSACTIONAL ĐỂ KHÔNG BỊ TRỐNG DỮ LIỆU
+    @Transactional(readOnly = true)
     public Map<String, Long> getActionStats() {
         return auditLogRepository.countByActionType()
                 .stream()
@@ -78,6 +81,8 @@ public class AuditService {
                 ));
     }
 
+    // THÊM TRANSACTIONAL ĐỂ KHÔNG BỊ TRỐNG DỮ LIỆU
+    @Transactional(readOnly = true)
     public Map<String, Long> getObjectStats() {
         return auditLogRepository.countByObjectName()
                 .stream()
@@ -87,6 +92,8 @@ public class AuditService {
                 ));
     }
 
+    // THÊM TRANSACTIONAL ĐỂ KHÔNG BỊ TRỐNG DỮ LIỆU
+    @Transactional(readOnly = true)
     public Map<String, Long> getTimelineStats() {
         Map<String, Long> result = new LinkedHashMap<>();
         for (Object[] row : auditLogRepository.countByHour()) {

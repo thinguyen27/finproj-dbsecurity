@@ -1,6 +1,5 @@
 package com.hcmute.sportms.controller;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,16 +22,12 @@ public class GiaiDauController {
 	private final TranDauService tranDauService;
 	
 	@GetMapping({"/tournament", "/tournament/list"})
-	public String showTournamentList(
-	        Model model,
-	        Authentication auth) {
+	public String showTournamentList(Model model) {
 
 	    model.addAttribute(
 	            "list",
 	            giaiDauService.layDanhSachGiaiDau()
 	    );
-
-	    setRole(model, auth);
 
 	    return "/tournament/tournament-list";
 	}
@@ -40,8 +35,7 @@ public class GiaiDauController {
 	@GetMapping("/tournament/detail/{maGiai}")
 	public String showTournamentDetail(
 	        @PathVariable String maGiai,
-	        Model model,
-	        Authentication auth) {
+	        Model model) {
 
 	    model.addAttribute(
 	            "currentTournament",
@@ -55,41 +49,31 @@ public class GiaiDauController {
 	            "matchList",
 	            tranDauService.layDanhSachTranTheoGiai(maGiai));
 
-	    setRole(model, auth);
-
 	    return "tournament/tournament-detail";
 	}
+	
     @GetMapping("/tournament/add")
-    public String showAddForm(Model model,
-                               Authentication auth) {
+    public String showAddForm(Model model) {
 
-        model.addAttribute("tournament",
-                new GiaiDau());
-
-        setRole(model, auth);
+        model.addAttribute("tournament", new GiaiDau());
 
         return "tournament/tournament-form";
     }
 
     @GetMapping("/tournament/edit/{maGiai}")
-    public String showEditForm(@PathVariable String maGiai,
-                               Model model,
-                               Authentication auth) {
+    public String showEditForm(@PathVariable String maGiai, Model model) {
 
         model.addAttribute(
                 "tournament",
                 giaiDauService.layGiaiDauTheoMa(maGiai)
         );
 
-        setRole(model, auth);
-
         return "tournament/tournament-form";
     }
 
     @PostMapping("/tournament/save")
     public String saveTournament(
-            @ModelAttribute("tournament")
-            GiaiDau giaiDau) {
+            @ModelAttribute("tournament") GiaiDau giaiDau) {
 
         giaiDauService.luuGiaiDau(giaiDau);
 
@@ -104,30 +88,4 @@ public class GiaiDauController {
 
         return "redirect:/tournament";
     }
-
-    private void setRole(Model model,
-                         Authentication auth) {
-
-        if (auth != null) {
-
-            boolean isBTC = auth.getAuthorities()
-                    .stream()
-                    .anyMatch(a ->
-                            a.getAuthority()
-                                    .equals("ROLE_BTC"));
-
-            model.addAttribute(
-                    "currentRole",
-                    isBTC ? "ROLE_BTC" : "USER"
-            );
-
-        } else {
-
-            model.addAttribute(
-                    "currentRole",
-                    "GUEST"
-            );
-        }
-    }
-    
 }
